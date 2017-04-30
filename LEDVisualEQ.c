@@ -61,12 +61,12 @@ int main(void)	{
 
 	static int sections_lo_mid = 6;
 	static float coefs_lo_mid[] = {
-		6.831883e-01f, -1.358543e+00f, 6.831883e-01f, 1.983828e+00f, -9.881045e-01f, 
-		6.831883e-01f, -1.366252e+00f, 6.831883e-01f, 1.995500e+00f, -9.959848e-01f, 
-		4.705108e-01f, -9.141182e-01f, 4.705108e-01f, 1.979823e+00f, -9.821168e-01f, 
-		4.705108e-01f, -9.410047e-01f, 4.705108e-01f, 1.987890e+00f, -9.887879e-01f, 
-		9.794345e-02f, -1.950899e-01f, 9.794345e-02f, 1.991121e+00f, -9.965144e-01f, 
-		9.794345e-02f, -1.958618e-01f, 9.794345e-02f, 1.998679e+00f, -9.990658e-01f
+		6.842074e-01f, -1.366609e+00f, 6.842074e-01f, 1.993738e+00f, -9.948458e-01f, 
+		6.842074e-01f, -1.368362e+00f, 6.842074e-01f, 1.997717e+00f, -9.979003e-01f, 
+		4.698467e-01f, -9.339450e-01f, 4.698467e-01f, 1.991454e+00f, -9.921131e-01f, 
+		4.698467e-01f, -9.396855e-01f, 4.698467e-01f, 1.994300e+00f, -9.946072e-01f, 
+		9.797716e-02f, -1.957646e-01f, 9.797716e-02f, 1.997142e+00f, -9.984926e-01f, 
+		9.797716e-02f, -1.959440e-01f, 9.797716e-02f, 1.999345e+00f, -9.994959e-01f
 	};
 
 	static int sections_mid_hi = 6;
@@ -79,15 +79,17 @@ int main(void)	{
 		9.794774e-02f, -1.950825e-01f, 9.794774e-02f, 1.988755e+00f, -9.983886e-01f
 	};
 
-	static int sections_hi = 3;
+	static int sections_hi = 4;
 	static float coefs_hi[] = {
-		2.050874e+00f, -4.090430e+00f, 2.050874e+00f, 1.920568e+00f, -9.446642e-01f, 
-		1.897494e+01f, -3.793318e+01f, 1.897494e+01f, 1.607320e+00f, -6.827026e-01f, 
-		1.810025e-02f, -3.604153e-02f, 1.810025e-02f, 1.972934e+00f, -9.894796e-01f
+		1.332423e+00f, -2.652495e+00f, 1.332423e+00f, 1.952443e+00f, -9.754978e-01f, 
+		3.165774e+00f, -6.315970e+00f, 3.165774e+00f, 1.876846e+00f, -9.162081e-01f, 
+		2.270895e+01f, -4.540216e+01f, 2.270895e+01f, 1.454138e+00f, -5.868100e-01f, 
+		6.579374e-03f, -1.308295e-02f, 6.579374e-03f, 1.975097e+00f, -9.941714e-01f
 	};
 
 	float32_t pstate_lo[2*sections_lo], pstate_lo_mid[2*sections_lo_mid], pstate_mid_hi[2*sections_mid_hi], pstate_hi[2*sections_hi];
 
+	setblocksize(50);
 	initialize(FS_128K, MONO_IN, STEREO_OUT);
 	nsamp = getblocksize();
 
@@ -118,36 +120,36 @@ int main(void)	{
 		DIGITAL_IO_SET();
 
 		arm_biquad_cascade_df2T_f32(&filter_lo,input,output_lo,nsamp);
-		arm_biquad_cascade_df2T_f32(&filter_lo_mid,input,output_lo_mid,nsamp);
-		arm_biquad_cascade_df2T_f32(&filter_mid_hi,input,output_mid_hi,nsamp);
+		// arm_biquad_cascade_df2T_f32(&filter_lo_mid,input,output_lo_mid,nsamp);
+		// arm_biquad_cascade_df2T_f32(&filter_mid_hi,input,output_mid_hi,nsamp);
 		arm_biquad_cascade_df2T_f32(&filter_hi,input,output_hi,nsamp);
 
-		arm_scale_f32(output_lo,4,output_lo,nsamp);
-		arm_scale_f32(output_lo_mid,4,output_lo_mid,nsamp);
-		arm_scale_f32(output_mid_hi,4,output_mid_hi,nsamp);
+		arm_scale_f32(output_lo,2,output_lo,nsamp);
+		// arm_scale_f32(output_lo_mid,2,output_lo_mid,nsamp);
+		// arm_scale_f32(output_mid_hi,3,output_mid_hi,nsamp);
 		arm_scale_f32(output_hi,4,output_hi,nsamp);
 
 		arm_abs_f32(output_lo,output_lo,nsamp);
-		arm_abs_f32(output_lo_mid,output_lo_mid,nsamp);
-		arm_abs_f32(output_mid_hi,output_mid_hi,nsamp);
+		// arm_abs_f32(output_lo_mid,output_lo_mid,nsamp);
+		// arm_abs_f32(output_mid_hi,output_mid_hi,nsamp);
 		arm_abs_f32(output_hi,output_hi,nsamp);
 
 		arm_offset_f32(output_lo,-0.99,output_lo,nsamp);
-		arm_offset_f32(output_lo_mid,-0.99,output_lo_mid,nsamp);
-		arm_offset_f32(output_mid_hi,-0.99,output_mid_hi,nsamp);
+		// arm_offset_f32(output_lo_mid,-0.99,output_lo_mid,nsamp);
+		// arm_offset_f32(output_mid_hi,-0.99,output_mid_hi,nsamp);
 		arm_offset_f32(output_hi,-0.99,output_hi,nsamp);
 
 		arm_mean_f32(output_lo,nsamp,&mean);
-		if(mean > -0.42) LO_SET();
+		if(mean > 0.6) LO_SET();
 		else LO_RESET();
-		arm_mean_f32(output_lo_mid,nsamp,&mean);
-		if(mean > -0.71) LO_MID_SET();
-		else LO_MID_RESET();
-		arm_mean_f32(output_mid_hi,nsamp,&mean);
-		if(mean > -0.86) MID_HI_SET();
-		else MID_HI_RESET();
+		// arm_mean_f32(output_lo_mid,nsamp,&mean);
+		// if(mean > 0.1) LO_MID_SET();
+		// else LO_MID_RESET();
+		// arm_mean_f32(output_mid_hi,nsamp,&mean);
+		// if(mean > -0.4) MID_HI_SET();
+		// else MID_HI_RESET();
 		arm_mean_f32(output_hi,nsamp,&mean);
-		if(mean > -0.89) HI_SET();
+		if(mean > 0.05) HI_SET();
 		else HI_RESET();
 
 		DIGITAL_IO_RESET();
