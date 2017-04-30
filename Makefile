@@ -1,6 +1,6 @@
-TARGET=final
+TARGET=LEDVisualEQ
 
-OBJS  = final.o
+OBJS  = LEDVisualEQ.o
 
 INSTALLDIR = /usr/local/stmdev/
 
