@@ -4,7 +4,6 @@ OBJS  = LEDVisualEQ.o
 
 INSTALLDIR = /usr/local/stmdev/
 
-
 ARCH = STM32L476xx
 
 CC=arm-none-eabi-gcc
