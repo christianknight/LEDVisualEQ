@@ -27,15 +27,17 @@ int main(void)	{
 	float32_t mean;	// for storing average value
 	static float offset = -0.99;	// DC offset to add to filtered block
 	// thresholds for turning LEDs on/off
-	float thresh_lo = -0.4;	
+	float thresh_lo = -0.6;	
 	float thresh_lo_mid = -0.65;
 	float thresh_mid_hi = -0.8;
-	float thresh_hi = -0.7;
+	float thresh_hi = -0.8;
 	// scaling factors for each filter
-	float scale_lo = 2;
-	float scale_lo_mid = 2;
-	float scale_mid_hi = 3;
-	float scale_hi = 4;
+	float scale_input = 1;
+	float scale_lo = 3;
+	float scale_lo_mid = 3;
+	float scale_mid_hi = 4;
+	float scale_hi = 5;
+	// float increment = 1.3;
 
 	// set up filter structures
 	arm_biquad_cascade_df2T_instance_f32 filter_lo;
@@ -60,6 +62,8 @@ int main(void)	{
 	
 	while(1)	{
 		getblock(input);	// grabs 'blocksize' number of input samples
+
+		if (scale_input > 1)	arm_scale_f32(input,scale_input,input,nsamp);
 
 		// execute each filter
 		arm_biquad_cascade_df2T_f32(&filter_lo,input,output_lo,nsamp);
@@ -98,5 +102,15 @@ int main(void)	{
 		arm_mean_f32(output_hi,nsamp,&mean);
 		if(mean > thresh_hi) HI_SET();
 		else HI_RESET();
+
+		// if (KeyPressed) {
+ 	// 		KeyPressed = RESET;
+ 	// 		scale_input *= increment;
+ 	// 	}
+
+		if (KeyPressed) {
+ 			KeyPressed = RESET;
+ 			flash_lo();
+ 		}
 	}
 }

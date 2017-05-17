@@ -1,5 +1,7 @@
 #include "LEDVisualEQ_init.h"
 
+static volatile uint32_t ticks;
+
 void gpio_init(void)	{
 	GPIO_InitTypeDef  GPIO_LO;
 	__GPIOE_CLK_ENABLE();					// Clock on for Port E
@@ -32,4 +34,33 @@ void gpio_init(void)	{
 	GPIO_HI.Speed = GPIO_SPEED_HIGH;		// LOW, MEDIUM, FAST, or HIGH
 	GPIO_HI.Pin = GPIO_PIN_15;				// Set up PE15
 	HAL_GPIO_Init(GPIOE, &GPIO_HI);
+}
+ 
+void delay(uint32_t t) {
+  uint32_t start, end;
+  start = HAL_GetTick();
+  end = start + t;
+  if (start < end) { 
+    while ((HAL_GetTick() >= start) && (HAL_GetTick() < end)) { 
+      // do nothing 
+    } 
+  } else { 
+    while ((HAL_GetTick() >= start) || (HAL_GetTick() < end)) {
+      // do nothing
+    };
+  }
+}
+
+void flash_lo(void)	{
+	int time = 50;
+	while (1)	{
+		if (KeyPressed) {
+ 			KeyPressed = RESET;
+ 			time = time / 2;
+ 		}
+ 		LO_SET(), LO_MID_SET(), MID_HI_SET(), HI_SET();
+ 		delay(time);
+ 		LO_RESET(), LO_MID_RESET(), MID_HI_RESET(), HI_RESET();
+ 		delay(time);
+ 	}
 }

@@ -56,3 +56,7 @@ static float coefs_hi[] = {
 };
 
 void gpio_init(void);	// sets up 4 GPIO pins on port E to turn LEDs on/off
+
+void delay(uint32_t t);
+
+void flash_lo(void);
