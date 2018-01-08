@@ -1,15 +1,15 @@
-TARGET=LEDVisualEQ
+TARGET = LightRamp
 
-OBJS  = LEDVisualEQ.o
+OBJS  = LightRamp.o
 
 INSTALLDIR = /usr/local/stmdev/
 
 ARCH = STM32L476xx
 
-CC=arm-none-eabi-gcc
-LD=arm-none-eabi-ld
-AS=arm-none-eabi-as
-OBJCOPY=arm-none-eabi-objcopy
+CC = arm-none-eabi-gcc
+LD = arm-none-eabi-ld
+AS = arm-none-eabi-as
+OBJCOPY = arm-none-eabi-objcopy
 
 INCDIRS = -I$(INSTALLDIR)/include -I.
 LIBDIRS = -L$(INSTALLDIR)/lib
