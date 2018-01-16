@@ -82,46 +82,7 @@
 #define LED4_SET()    HAL_GPIO_WritePin(LED4_GPIO_Port, LED4_Pin, GPIO_PIN_SET)
 #define LED4_RESET()  HAL_GPIO_WritePin(LED4_GPIO_Port, LED4_Pin, GPIO_PIN_RESET)
 
-extern FlagStatus KeyPressed;   // detect button presses
-
-// low-band filter coefficients
-const int sections_lo = 3;
-const float coefs_lo[] = {
-	2.603860e-01f, -5.206777e-01f, 2.603860e-01f, 1.997446e+00f, -9.974836e-01f,
-	1.037341e-01f, -2.072098e-01f, 1.037341e-01f, 1.996066e+00f, -9.960752e-01f,
-	3.691527e-03f, -7.382281e-03f, 3.691527e-03f, 1.999129e+00f, -9.991905e-01f
-};
-
-// low-mid band filter coefficients
-const int sections_lo_mid = 6;
-const float coefs_lo_mid[] = {
-	6.828877e-01f, -1.352992e+00f, 6.828877e-01f, 1.978480e+00f, -9.863217e-01f,
-	6.828877e-01f, -1.365400e+00f, 6.828877e-01f, 1.993106e+00f, -9.944085e-01f,
-	4.712733e-01f, -9.022227e-01f, 4.712733e-01f, 1.974448e+00f, -9.791039e-01f,
-	4.712733e-01f, -9.424909e-01f, 4.712733e-01f, 1.983500e+00f, -9.856781e-01f,
-	9.793550e-02f, -1.945244e-01f, 9.793550e-02f, 1.986403e+00f, -9.959891e-01f,
-	9.793550e-02f, -1.957976e-01f, 9.793550e-02f, 1.997583e+00f, -9.986558e-01f
-};
-
-// mid-high band filter coefficients
-const int sections_mid_hi = 6;
-const float coefs_mid_hi[] = {
-	6.822613e-01f, -1.249698e+00f, 6.822613e-01f, 1.859188e+00f, -9.826378e-01f,
-	6.822613e-01f, -1.328025e+00f, 6.822613e-01f, 1.914335e+00f, -9.866131e-01f,
-	4.759652e-01f, -7.833861e-01f, 4.759652e-01f, 1.865677e+00f, -9.704703e-01f,
-	4.759652e-01f, -9.403309e-01f, 4.759652e-01f, 1.889254e+00f, -9.734410e-01f,
-	9.793013e-02f, -1.811671e-01f, 9.793013e-02f, 1.862648e+00f, -9.950364e-01f,
-	9.793013e-02f, -1.899658e-01f, 9.793013e-02f, 1.928320e+00f, -9.964095e-01f
-};
-
-// high-band filter coefficients
-const int sections_hi = 4;
-const float coefs_hi[] = {
-	1.107652e+00f, -1.971959e+00f, 1.107652e+00f, 1.597598e+00f, -9.353801e-01f,
-	2.089015e+00f, -3.897720e+00f, 2.089015e+00f, 1.315506e+00f, -7.766538e-01f,
-	9.515451e+00f, -1.882463e+01f, 9.515451e+00f, 3.547976e-01f, -2.410542e-01f,
-	1.187221e-02f, -2.073522e-02f, 1.187221e-02f, 1.678874e+00f, -9.855717e-01f
-};
+// extern FlagStatus KeyPressed;   // detect button presses
 
 void flash(int time);
 
@@ -144,36 +105,8 @@ void getblock(float * working);
 void getblockstereo(float * chan1, float * chan2);
 void putblock(float * working);
 void putblockstereo(float * chan1, float * chan2);
-#define FS_2K 40000 	//!< 2 ksamples/sec
-#define FS_4K 20000 	//!< 4 ksamples/sec
-#define FS_5K 16000 	//!< 5 ksamples/sec
-#define FS_8K 10000 	//!< 8 ksamples/sec
-#define FS_10K 8000 	//!< 10 ksamples/sec
-#define FS_16K 5000 	//!< 16 ksamples/sec
-#define FS_20K 4000 	//!< 20 ksamples/sec
-#define FS_24K 3333 	//!< 24.0024 ksamples/sec
-#define FS_25K 3200 	//!< 25 ksamples/sec
-#define FS_32K 2500 	//!< 32 ksamples/sec
-#define FS_40K 2000 	//!< 40 ksamples/sec
-#define FS_48K 1667 	//!< 47.9904 ksamples/sec
-#define FS_50K 1600 	//!< 50 ksamples/sec
-#define FS_64K 1250 	//!< 64 ksamples/sec
-#define FS_80K 1000 	//!< 80 ksamples/sec
-#define FS_96K 833 	//!< 96.0384 ksamples/sec
-#define FS_100K 800 	//!< 100 ksamples/sec
-#define FS_125K 640 	//!< 125 ksamples/sec
-#define FS_128K 625 	//!< 128 ksamples/sec
-#define FS_160K 500 	//!< 160 ksamples/sec
-#define FS_200K 400 	//!< 200 ksamples/sec
-#define FS_250K 320 	//!< 250 ksamples/sec
-#define FS_320K 250 	//!< 320 ksamples/sec
-#define FS_400K 200 	//!< 400 ksamples/sec
-#define FS_500K 160 	//!< 500 ksamples/sec
-#define FS_625K 128 	//!< 625 ksamples/sec
-#define FS_640K 125 	//!< 640 ksamples/sec
-#define FS_800K 100 	//!< 800 ksamples/sec
-#define FS_1000K 80 	//!< 1000 ksamples/sec
-
+static volatile uint32_t * inbuf;
+static volatile uint32_t * outbuf;
 enum Num_Channels_In {
   MONO_IN,		//!< Mono Input: Only configure ADC1, single DMA Transfer
   STEREO_IN		//!< Stereo Input: Configure ADC1 and ADC2, dual DMA Transfer
@@ -182,14 +115,25 @@ enum Num_Channels_Out {
   MONO_OUT,		//!< Mono Output: Only configure DAC1, single DMA Transfer
   STEREO_OUT		//!< Stereo Output: Configure DAC1 and DAC2, dual DMA Transfer
 };
-enum Clock_Reference {
-  MSI_INTERNAL_RC,	//!< Internal MSI RC Oscillator
-  HSE_EXTERNAL_8MHz	//!< External 8MHz reference
-};
 extern enum Num_Channels_Out Output_Configuration;
 extern enum Num_Channels_In Input_Configuration;
-void initialize(uint16_t timer_count_value, enum Num_Channels_In chanin, enum Num_Channels_Out chanout, enum Clock_Reference clkref);
-float getsamplingfrequency(void);
+// void initialize(uint16_t timer_count_value, enum Num_Channels_In chanin, enum Num_Channels_Out chanout, enum Clock_Reference clkref);
+// float getsamplingfrequency(void);
+
+// error handling
+#define ERRORBUFLEN 100		// number of errors to record in a circular buffer
+#define SAMPLE_OVERRUN 2		// ADC buffer filled before the user serviced the buffer
+#define MEMORY_ALLOCATION_ERROR 3	// malloc() or calloc() returned NULL
+#define DAC_CONFIG_ERROR 4
+#define ADC_CONFIG_ERROR 5
+#define SETBLOCKSIZE_ERROR 6		// setblocksize() must be called BEFORE initialize()
+#define UART_CONFIG_ERROR 7
+#define CLOCK_CONFIG_ERROR 8
+static void print_error(int index);
+extern int errorbuf[];
+extern int erroridx;
+void initerror();
+void flagerror(int errorcode);
 
 /* USER CODE END Private defines */
 

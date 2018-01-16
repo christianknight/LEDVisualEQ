@@ -70,6 +70,58 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 
 /* USER CODE BEGIN 0 */
 
+// low-band filter coefficients
+const int sections_lo = 3;
+const float coefs_lo[] = {
+	2.603860e-01f, -5.206777e-01f, 2.603860e-01f, 1.997446e+00f, -9.974836e-01f,
+	1.037341e-01f, -2.072098e-01f, 1.037341e-01f, 1.996066e+00f, -9.960752e-01f,
+	3.691527e-03f, -7.382281e-03f, 3.691527e-03f, 1.999129e+00f, -9.991905e-01f
+};
+
+// low-mid band filter coefficients
+const int sections_lo_mid = 6;
+const float coefs_lo_mid[] = {
+	6.828877e-01f, -1.352992e+00f, 6.828877e-01f, 1.978480e+00f, -9.863217e-01f,
+	6.828877e-01f, -1.365400e+00f, 6.828877e-01f, 1.993106e+00f, -9.944085e-01f,
+	4.712733e-01f, -9.022227e-01f, 4.712733e-01f, 1.974448e+00f, -9.791039e-01f,
+	4.712733e-01f, -9.424909e-01f, 4.712733e-01f, 1.983500e+00f, -9.856781e-01f,
+	9.793550e-02f, -1.945244e-01f, 9.793550e-02f, 1.986403e+00f, -9.959891e-01f,
+	9.793550e-02f, -1.957976e-01f, 9.793550e-02f, 1.997583e+00f, -9.986558e-01f
+};
+
+// mid-high band filter coefficients
+const int sections_mid_hi = 6;
+const float coefs_mid_hi[] = {
+	6.822613e-01f, -1.249698e+00f, 6.822613e-01f, 1.859188e+00f, -9.826378e-01f,
+	6.822613e-01f, -1.328025e+00f, 6.822613e-01f, 1.914335e+00f, -9.866131e-01f,
+	4.759652e-01f, -7.833861e-01f, 4.759652e-01f, 1.865677e+00f, -9.704703e-01f,
+	4.759652e-01f, -9.403309e-01f, 4.759652e-01f, 1.889254e+00f, -9.734410e-01f,
+	9.793013e-02f, -1.811671e-01f, 9.793013e-02f, 1.862648e+00f, -9.950364e-01f,
+	9.793013e-02f, -1.899658e-01f, 9.793013e-02f, 1.928320e+00f, -9.964095e-01f
+};
+
+// high-band filter coefficients
+const int sections_hi = 4;
+const float coefs_hi[] = {
+	1.107652e+00f, -1.971959e+00f, 1.107652e+00f, 1.597598e+00f, -9.353801e-01f,
+	2.089015e+00f, -3.897720e+00f, 2.089015e+00f, 1.315506e+00f, -7.766538e-01f,
+	9.515451e+00f, -1.882463e+01f, 9.515451e+00f, 3.547976e-01f, -2.410542e-01f,
+	1.187221e-02f, -2.073522e-02f, 1.187221e-02f, 1.678874e+00f, -9.855717e-01f
+};
+
+extern enum Num_Channels_Out Output_Configuration;
+extern enum Num_Channels_In Input_Configuration;
+int errorbuf[ERRORBUFLEN];
+int first_error = 0;
+int erroridx = 0;
+volatile uint32_t *ADC_Input_Buffer = NULL;
+volatile uint32_t *DAC_Output_Buffer = NULL;
+uint32_t ADC_Block_Size = DEFAULT_BLOCKSIZE;	//!< Number of samples user accesses per data block
+uint32_t ADC_Buffer_Size = 2*DEFAULT_BLOCKSIZE; //!< Total buffer size being filled by DMA for ADC/DAC
+enum Processor_Task volatile Sampler_Status;
+volatile int Lower_Ready = 0;      // Set by the ISR to indicate which
+// __IO FlagStatus KeyPressed = RESET;
+
 /* USER CODE END 0 */
 
 int main(void)
@@ -79,17 +131,16 @@ int main(void)
 
 	uint32_t nsamp = 20;						// number of samples per block
 	setblocksize(nsamp);						// set number of samples per block
-	initialize(FS_48K, MONO_IN, STEREO_OUT);	// sets up ADC peripherals and processor clocks
-	gpio_init();								// sets up 4 GPIO pins on port E to turn LEDs on/off
+	// initialize(FS_48K, MONO_IN, STEREO_OUT);	// sets up ADC peripherals and processor clocks
 
 	float32_t *input, *output_lo, *output_lo_mid,
-	*output_mid_hi, *output_hi;	// buffers for input block and filtered output blocks
+		*output_mid_hi, *output_hi;	// buffers for input block and filtered output blocks
 
 	float32_t pstate_lo[2*sections_lo], pstate_lo_mid[2*sections_lo_mid],
-	pstate_mid_hi[2*sections_mid_hi], pstate_hi[2*sections_hi];	// buffers to hold previous filter samples
+		pstate_mid_hi[2*sections_mid_hi], pstate_hi[2*sections_hi];	// buffers to hold previous filter samples
 
 	float32_t mean;	// for storing average value
-	static float offset = -0.99;	// DC offset to add to filtered block
+	const float offset = -0.99;	// DC offset to add to filtered block
 	// thresholds for turning LEDs on/off
 	float thresh_lo = -0.6;
 	float thresh_lo_mid = -0.65;
@@ -119,10 +170,10 @@ int main(void)
 	output_lo_mid = (float*)malloc(sizeof(float)*nsamp);
 	output_mid_hi = (float*)malloc(sizeof(float)*nsamp);
 	output_hi = (float*)malloc(sizeof(float)*nsamp);
-	if (input==NULL || output_lo==NULL || output_lo_mid==NULL || output_mid_hi==NULL || output_hi==NULL) {
-		flagerror(MEMORY_ALLOCATION_ERROR);
-		while(1);
-	}
+//	if (input==NULL || output_lo==NULL || output_lo_mid==NULL || output_mid_hi==NULL || output_hi==NULL) {
+//		flagerror(MEMORY_ALLOCATION_ERROR);
+//		while(1);
+//	}
 
   /* USER CODE END 1 */
 
@@ -201,15 +252,15 @@ int main(void)
 	  if(mean > thresh_hi) LED4_SET();
 	  else LED4_RESET();
 
-	  // if (KeyPressed) {
-	  // 		KeyPressed = RESET;
-	  // 		scale_input *= increment;
-	  // 	}
+//	   if (KeyPressed) {
+//	   		KeyPressed = RESET;
+//	   		scale_input *= increment;
+//	   	}
 
-	  if (KeyPressed) {
-		  KeyPressed = RESET;
-		  flash();
-	  }
+//	  if (KeyPressed) {
+//		  KeyPressed = RESET;
+//		  flash();
+//	  }
 
   }
   /* USER CODE END 3 */
@@ -387,10 +438,10 @@ static void MX_GPIO_Init(void)
 
 void flash(int time)	{
 	while (1)	{
-		if (KeyPressed) {
- 			KeyPressed = RESET;
- 			time = time / 2;
- 		}
+//		if (KeyPressed) {
+// 			KeyPressed = RESET;
+// 			time = time / 2;
+// 		}
  		LED1_SET(), LED2_SET(), LED3_SET(), LED4_SET();
  		HAL_Delay(time);
  		LED1_RESET(), LED2_RESET(), LED3_RESET(), LED4_RESET();
@@ -559,11 +610,57 @@ void HAL_ADC_ConvHalfCpltCallback(ADC_HandleTypeDef* hadc)
   }
 }
 
-void initialize(uint16_t timer_count_value, enum Num_Channels_In chanin, enum Num_Channels_Out chanout, enum Clock_Reference clkref)
+// error handling
+void initerror()
 {
-	Output_Configuration = chanout;
-	Input_Configuration = chanin;
+  int i;
+
+  for (i=0; i<ERRORBUFLEN; i++) errorbuf[i] = 0;
+
+  // turn off our error indicating LED
+  // BSP_LED_Off(ERROR_LED);
 }
+
+void flagerror(int errorcode)
+{
+  char err_str[8];
+
+  // Display the first error on the LCD if available
+  if (first_error == 0) {
+    first_error = errorcode;
+    // sprintf(err_str, "ERR %2d", errorcode);
+    // BSP_LCD_GLASS_DisplayString((uint8_t*)err_str);
+    // print_error(errorcode);
+  }
+
+  //turn on our error indicating LED
+  // BSP_LED_On(ERROR_LED);
+
+
+  // Store an array of the most recent errors for examination by a debugger.
+  errorbuf[erroridx] = errorcode;
+  erroridx++;
+  if (erroridx == ERRORBUFLEN) erroridx = 0;
+}
+
+static void print_error(int index){
+
+    char* error;
+
+    if(index == 2)		error = "SAMPLE_OVERRUN";
+    else if(index == 3)		error = "MEMORY_ALLOCATION_ERROR";
+    else if(index == 4)		error =	"DAC_CONFIG_ERROR";
+    else if(index == 5)		error =	"ADC_CONFIG_ERROR";
+    else if(index == 6)		error =	"SETBLOCKSIZE_ERROR";
+    else if(index == 7)		error = "INVALID_MIC_SAMPLE_RATE";
+    else if(index == 8)		error = "CLOCK_CONFIG_ERROR";
+    else if(index == 13)	error = "DEBUG_ERROR";
+    else error = "UNKNOWN";
+
+    // printf("\n*** ERROR %d ***: %s\n",index, error);
+}
+
+//void initialize(uint16_t timer_count_value, enum Num_Channels_In chanin, enum Num_Channels_Out chanout, enum Clock_Reference clkref){}
 
 /* USER CODE END 4 */
 
