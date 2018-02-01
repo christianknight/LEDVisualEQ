@@ -148,7 +148,7 @@ int main(void)
 //	  do_offset();
 //	  do_mean();
 //	  do_LEDs();
-	  test_pattern();
+	  sequence_pulse();
   }
   /* USER CODE END 3 */
 
@@ -284,7 +284,7 @@ static void MX_TIM2_Init(void)
   htim2.Instance = TIM2;
   htim2.Init.Prescaler = 0;
   htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim2.Init.Period = 12000;
+  htim2.Init.Period = 18000;
   htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   if (HAL_TIM_PWM_Init(&htim2) != HAL_OK)
   {

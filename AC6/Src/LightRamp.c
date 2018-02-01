@@ -377,37 +377,55 @@ static void print_error(int index){
     // printf("\n*** ERROR %d ***: %s\n",index, error);
 }
 
-void test_pattern(void)	{
+void sequence_pulse(void)	{
 	uint32_t pulse = 1;
 	while (pulse)	{
-		pulse = adjust_PWM();
-		__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_1, pulse);
+		pulse = adjust_PWM_lo();
+		adjust_PWM(TIM_CHANNEL_1, pulse);
 		HAL_Delay(1);
 	}
 	pulse = 1;
 	while (pulse)	{
-		pulse = adjust_PWM();
-		__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_2, pulse);
+		pulse = adjust_PWM_lo();
+		adjust_PWM(TIM_CHANNEL_2, pulse);
 		HAL_Delay(1);
 	}
 	pulse = 1;
 	while (pulse)	{
-		pulse = adjust_PWM();
-		__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_3, pulse);
+		pulse = adjust_PWM_lo();
+		adjust_PWM(TIM_CHANNEL_3, pulse);
 		HAL_Delay(1);
 	}
 	pulse = 1;
 	while (pulse)	{
-		pulse = adjust_PWM();
-		__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_4, pulse);
+		pulse = adjust_PWM_lo();
+		adjust_PWM(TIM_CHANNEL_4, pulse);
 		HAL_Delay(1);
 	}
 }
 
-uint32_t adjust_PWM(void)	{
+void breathing(void)	{
+	int i;
+	for (i = 0; i < 400; i++){
+		adjust_PWM(TIM_CHANNEL_1, i);
+		adjust_PWM(TIM_CHANNEL_2, i);
+		adjust_PWM(TIM_CHANNEL_3, i);
+		adjust_PWM(TIM_CHANNEL_4, i);
+		HAL_Delay(1);
+	}
+	for (i = 400; i > 0; i--){
+		adjust_PWM(TIM_CHANNEL_1, i);
+		adjust_PWM(TIM_CHANNEL_2, i);
+		adjust_PWM(TIM_CHANNEL_3, i);
+		adjust_PWM(TIM_CHANNEL_4, i);
+		HAL_Delay(1);
+	}
+}
+
+uint32_t adjust_PWM_lo(void)	{
 	static int dir = 1;
 	static uint32_t pulse_width;
-	if (pulse_width == 700)
+	if (pulse_width == 400)
 		dir = 0;
 	else if (pulse_width == 0)
 		dir = 1;
@@ -415,6 +433,10 @@ uint32_t adjust_PWM(void)	{
 		pulse_width++;
 	else pulse_width--;
 	return pulse_width;
+}
+
+void adjust_PWM(uint16_t channel, long val)	{
+	__HAL_TIM_SET_COMPARE(&htim2, channel, val);
 }
 
 //void initialize(uint16_t timer_count_value, enum Num_Channels_In chanin, enum Num_Channels_Out chanout, enum Clock_Reference clkref){}

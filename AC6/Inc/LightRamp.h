@@ -49,8 +49,10 @@ void do_mean(void);
 void flash(int time);
 void initerror();
 void flagerror(int errorcode);
-void test_pattern(void);
-uint32_t adjust_PWM(void);
+void sequence_pulse(void);
+void breathing(void);
+uint32_t adjust_PWM_lo(void);
+void adjust_PWM(uint16_t, long);
 
 
 /* Variable declarations */
