@@ -51,10 +51,9 @@ const float coefs_hi[] = {
 	1.187221e-02f, -2.073522e-02f, 1.187221e-02f, 1.678874e+00f, -9.855717e-01f
 };
 
-uint32_t nsamp = 20;	// number of samples per block
-
 /* Variables */
 extern TIM_HandleTypeDef htim2;
+uint32_t nsamp = 20;	// number of samples per block
 extern enum Num_Channels_Out Output_Configuration;
 extern enum Num_Channels_In Input_Configuration;
 int errorbuf[ERRORBUFLEN];
@@ -66,7 +65,7 @@ uint32_t ADC_Block_Size = DEFAULT_BLOCKSIZE;	//!< Number of samples user accesse
 uint32_t ADC_Buffer_Size = 2*DEFAULT_BLOCKSIZE; //!< Total buffer size being filled by DMA for ADC/DAC
 enum Processor_Task volatile Sampler_Status;
 volatile int Lower_Ready = 0;      // Set by the ISR to indicate which
-FlagStatus KeyPressed = RESET;
+extern __IO FlagStatus KeyPressed;
 
 float32_t mean;	// for storing average value
 const float offset = -0.99;	// DC offset to add to filtered block
@@ -83,11 +82,9 @@ float scale_lo = 3;
 float scale_lo_mid = 3;
 float scale_mid_hi = 4;
 float scale_hi = 5;
-// float increment = 1.3;
 
 // set up filter structures
-void filt_init(void)
-{
+void filt_init(void)	{
 	// buffers to hold previous filter samples
 	float32_t pstate_lo[2*sections_lo], pstate_lo_mid[2*sections_lo_mid],
 		pstate_mid_hi[2*sections_mid_hi], pstate_hi[2*sections_hi];
@@ -98,8 +95,7 @@ void filt_init(void)
 }
 
 // execute each filter
-void do_filter(float32_t *input)
-{
+void do_filter(float32_t *input)	{
 	arm_biquad_cascade_df2T_f32(&filter_lo,input,output_lo,nsamp);
 	arm_biquad_cascade_df2T_f32(&filter_lo_mid,input,output_lo_mid,nsamp);
 	arm_biquad_cascade_df2T_f32(&filter_mid_hi,input,output_mid_hi,nsamp);
@@ -107,8 +103,7 @@ void do_filter(float32_t *input)
 }
 
 // scale each filtered block up
-void do_scale(void)
-{
+void do_scale(void)	{
 	arm_scale_f32(output_lo,scale_lo,output_lo,nsamp);
 	arm_scale_f32(output_lo_mid,scale_lo_mid,output_lo_mid,nsamp);
 	arm_scale_f32(output_mid_hi,scale_mid_hi,output_mid_hi,nsamp);
@@ -116,8 +111,7 @@ void do_scale(void)
 }
 
 // get absolute value of each filtered block
-void do_abs(void)
-{
+void do_abs(void)	{
 	arm_abs_f32(output_lo,output_lo,nsamp);
 	arm_abs_f32(output_lo_mid,output_lo_mid,nsamp);
 	arm_abs_f32(output_mid_hi,output_mid_hi,nsamp);
@@ -125,8 +119,7 @@ void do_abs(void)
 }
 
 // remove DC offset from filtered block
-void do_offset(void)
-{
+void do_offset(void)	{
 	arm_offset_f32(output_lo,offset,output_lo,nsamp);
 	arm_offset_f32(output_lo_mid,offset,output_lo_mid,nsamp);
 	arm_offset_f32(output_mid_hi,offset,output_mid_hi,nsamp);
@@ -134,8 +127,7 @@ void do_offset(void)
 }
 
 // get mean of each filtered block
-void do_mean(void)
-{
+void do_mean(void)	{
 	arm_mean_f32(output_lo,nsamp,&mean);
 	arm_mean_f32(output_lo_mid,nsamp,&mean);
 	arm_mean_f32(output_mid_hi,nsamp,&mean);
@@ -143,8 +135,7 @@ void do_mean(void)
 }
 
 // set/clear LEDs based on mean of filtered blocks
-void do_LEDs(void)
-{
+void do_LEDs(void)	{
 	if(mean > thresh_lo) LED1_SET();
 	else LED1_RESET();
 	if(mean > thresh_lo_mid) LED2_SET();
@@ -155,14 +146,13 @@ void do_LEDs(void)
 	else LED4_RESET();
 }
 
-void flash(int time)
-{
+void flash(int delay)	{
 	while (1)
 	{
  		LED1_SET(), LED2_SET(), LED3_SET(), LED4_SET();
- 		HAL_Delay(time);
+ 		HAL_Delay(delay);
  		LED1_RESET(), LED2_RESET(), LED3_RESET(), LED4_RESET();
- 		HAL_Delay(time);
+ 		HAL_Delay(delay);
  	}
 }
 
@@ -377,66 +367,31 @@ static void print_error(int index){
     // printf("\n*** ERROR %d ***: %s\n",index, error);
 }
 
-void sequence_pulse(void)	{
-	uint32_t pulse = 1;
-	while (pulse)	{
-		pulse = adjust_PWM_lo();
-		adjust_PWM(TIM_CHANNEL_1, pulse);
-		HAL_Delay(1);
-	}
-	pulse = 1;
-	while (pulse)	{
-		pulse = adjust_PWM_lo();
-		adjust_PWM(TIM_CHANNEL_2, pulse);
-		HAL_Delay(1);
-	}
-	pulse = 1;
-	while (pulse)	{
-		pulse = adjust_PWM_lo();
-		adjust_PWM(TIM_CHANNEL_3, pulse);
-		HAL_Delay(1);
-	}
-	pulse = 1;
-	while (pulse)	{
-		pulse = adjust_PWM_lo();
-		adjust_PWM(TIM_CHANNEL_4, pulse);
-		HAL_Delay(1);
-	}
-}
-
-void breathing(void)	{
+void breathing(uint8_t delay)	{
 	int i;
-	for (i = 0; i < 400; i++){
-		adjust_PWM(TIM_CHANNEL_1, i);
-		adjust_PWM(TIM_CHANNEL_2, i);
-		adjust_PWM(TIM_CHANNEL_3, i);
-		adjust_PWM(TIM_CHANNEL_4, i);
-		HAL_Delay(1);
+	for (i = 0; i < 100; i++){
+		adjust_brightness(TIM_CHANNEL_1, i);
+		adjust_brightness(TIM_CHANNEL_2, i);
+		adjust_brightness(TIM_CHANNEL_3, i);
+		adjust_brightness(TIM_CHANNEL_4, i);
+		HAL_Delay(delay);
 	}
-	for (i = 400; i > 0; i--){
-		adjust_PWM(TIM_CHANNEL_1, i);
-		adjust_PWM(TIM_CHANNEL_2, i);
-		adjust_PWM(TIM_CHANNEL_3, i);
-		adjust_PWM(TIM_CHANNEL_4, i);
-		HAL_Delay(1);
+	for (i = 100; i > 0; i--){
+		adjust_brightness(TIM_CHANNEL_1, i);
+		adjust_brightness(TIM_CHANNEL_2, i);
+		adjust_brightness(TIM_CHANNEL_3, i);
+		adjust_brightness(TIM_CHANNEL_4, i);
+		HAL_Delay(delay);
 	}
 }
 
-uint32_t adjust_PWM_lo(void)	{
-	static int dir = 1;
-	static uint32_t pulse_width;
-	if (pulse_width == 400)
-		dir = 0;
-	else if (pulse_width == 0)
-		dir = 1;
-	if (dir)
-		pulse_width++;
-	else pulse_width--;
-	return pulse_width;
+void adjust_brightness(uint16_t channel, uint8_t val)	{
+	const int maxBrightness = 1000;
+	__HAL_TIM_SET_COMPARE(&htim2, channel, val * maxBrightness / 100);
 }
 
-void adjust_PWM(uint16_t channel, long val)	{
-	__HAL_TIM_SET_COMPARE(&htim2, channel, val);
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
+	KeyPressed = SET;
 }
 
 //void initialize(uint16_t timer_count_value, enum Num_Channels_In chanin, enum Num_Channels_Out chanout, enum Clock_Reference clkref){}

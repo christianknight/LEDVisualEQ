@@ -53,6 +53,7 @@ TIM_HandleTypeDef htim2;
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
+__IO FlagStatus KeyPressed = RESET;
 
 /* USER CODE END PV */
 
@@ -148,7 +149,12 @@ int main(void)
 //	  do_offset();
 //	  do_mean();
 //	  do_LEDs();
-	  sequence_pulse();
+	  for (int j = 0; j < 5; j++)	{
+		  breathing(j * 5);
+	  }
+	  for (int j = 5; j > 0; j--)	{
+		  breathing(j * 5);
+	  }
   }
   /* USER CODE END 3 */
 

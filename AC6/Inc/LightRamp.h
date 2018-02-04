@@ -46,13 +46,11 @@ void do_scale(void);
 void do_abs(void);
 void do_offset(void);
 void do_mean(void);
-void flash(int time);
+void flash(int);
 void initerror();
-void flagerror(int errorcode);
-void sequence_pulse(void);
-void breathing(void);
-uint32_t adjust_PWM_lo(void);
-void adjust_PWM(uint16_t, long);
+void flagerror(int);
+void breathing(uint8_t);
+void adjust_brightness(uint16_t, uint8_t);
 
 
 /* Variable declarations */
@@ -69,7 +67,7 @@ enum Processor_Task {
 };
 extern enum Processor_Task volatile Sampler_Status;
 int getblocksize(void);
-void setblocksize(uint32_t blksiz);
+void setblocksize(uint32_t);
 void getblock(float * working);
 void getblockstereo(float * chan1, float * chan2);
 void putblock(float * working);
