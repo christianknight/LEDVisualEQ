@@ -50,6 +50,7 @@
 
 #define PB1_Pin GPIO_PIN_13
 #define PB1_GPIO_Port GPIOC
+#define PB1_EXTI_IRQn EXTI15_10_IRQn
 #define Audio_In_Pin GPIO_PIN_0
 #define Audio_In_GPIO_Port GPIOA
 #define Audio_InA1_Pin GPIO_PIN_1

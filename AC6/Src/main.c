@@ -130,12 +130,8 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-//  while (KeyPressed == RESET) {	// Keep blinking until button press
-//    // BSP_LED_Toggle(NORMAL_LED);
-//    HAL_Delay(100);
-//    // BSP_LED_Toggle(ERROR_LED);
-//    HAL_Delay(100);
-//  }
+  while (KeyPressed == RESET); // wait for user button push
+  KeyPressed = RESET;	// reset button push flag
 
   while (1)
   {
@@ -351,9 +347,13 @@ static void MX_GPIO_Init(void)
 
   /*Configure GPIO pin : PB1_Pin */
   GPIO_InitStruct.Pin = PB1_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
   GPIO_InitStruct.Pull = GPIO_PULLDOWN;
   HAL_GPIO_Init(PB1_GPIO_Port, &GPIO_InitStruct);
+
+  /* EXTI interrupt init*/
+  HAL_NVIC_SetPriority(EXTI15_10_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
 
 }
 

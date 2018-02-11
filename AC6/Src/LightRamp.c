@@ -390,8 +390,14 @@ void adjust_brightness(uint16_t channel, uint8_t val)	{
 	__HAL_TIM_SET_COMPARE(&htim2, channel, val * maxBrightness / 100);
 }
 
-void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
-	KeyPressed = SET;
+/* GPIO pins 10-15 external interrupt handler */
+void EXTI15_10_IRQHandler(void)
+{
+	for (uint16_t i = 0; i < 0xFFFF; i++); // software button de-bounce
+	if (HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13))
+		KeyPressed = SET;
+
+	HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_13);
 }
 
 //void initialize(uint16_t timer_count_value, enum Num_Channels_In chanin, enum Num_Channels_Out chanout, enum Clock_Reference clkref){}
