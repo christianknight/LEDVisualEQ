@@ -121,6 +121,7 @@ int main(void)
 
   /* USER CODE BEGIN 2 */
 
+  // start PWM on all channels
   HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1);
   HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_2);
   HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_3);
@@ -132,6 +133,15 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (KeyPressed == RESET); // wait for user button push
   KeyPressed = RESET;	// reset button push flag
+
+  int delay = 250;	// delay to use for pulses
+  int val = 500;	// brightness value for pulse
+
+  // set initial brightness to 0 for all channels
+  adjust_brightness(TIM_CHANNEL_1, 0);
+  adjust_brightness(TIM_CHANNEL_2, 0);
+  adjust_brightness(TIM_CHANNEL_3, 0);
+  adjust_brightness(TIM_CHANNEL_4, 0);
 
   while (1)
   {
@@ -145,12 +155,9 @@ int main(void)
 //	  do_offset();
 //	  do_mean();
 //	  do_LEDs();
-	  for (int j = 0; j < 5; j++)	{
-		  breathing(j * 5);
-	  }
-	  for (int j = 5; j > 0; j--)	{
-		  breathing(j * 5);
-	  }
+
+	  pulse(LED[2], delay, val);	// do pulse
+	  HAL_Delay(delay);	// wait for next pulse
   }
   /* USER CODE END 3 */
 

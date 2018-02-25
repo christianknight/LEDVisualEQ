@@ -14,16 +14,14 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+
 /* Defines */
 // LED control
-#define LED1_SET()    HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_SET)
-#define LED1_RESET()  HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_RESET)
-#define LED2_SET()    HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, GPIO_PIN_SET)
-#define LED2_RESET()  HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, GPIO_PIN_RESET)
-#define LED3_SET()    HAL_GPIO_WritePin(LED3_GPIO_Port, LED3_Pin, GPIO_PIN_SET)
-#define LED3_RESET()  HAL_GPIO_WritePin(LED3_GPIO_Port, LED3_Pin, GPIO_PIN_RESET)
-#define LED4_SET()    HAL_GPIO_WritePin(LED4_GPIO_Port, LED4_Pin, GPIO_PIN_SET)
-#define LED4_RESET()  HAL_GPIO_WritePin(LED4_GPIO_Port, LED4_Pin, GPIO_PIN_RESET)
+#define LED1	TIM_CHANNEL_1
+#define LED2	TIM_CHANNEL_2
+#define LED3	TIM_CHANNEL_3
+#define LED4	TIM_CHANNEL_4
+uint32_t LED[4];
 
 // Error handling
 #define ERRORBUFLEN 100		// number of errors to record in a circular buffer
@@ -50,7 +48,8 @@ void flash(int);
 void initerror();
 void flagerror(int);
 void breathing(uint8_t);
-void adjust_brightness(uint16_t, uint8_t);
+void adjust_brightness(uint32_t, uint8_t);
+void pulse(uint32_t, uint8_t, uint8_t);
 
 
 /* Variable declarations */

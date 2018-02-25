@@ -6,6 +6,8 @@
 
 #include "LightRamp.h"
 
+uint32_t LED[4] = {LED1, LED2, LED3, LED4};
+
 /* Filters */
 arm_biquad_cascade_df2T_instance_f32 filter_lo;
 arm_biquad_cascade_df2T_instance_f32 filter_lo_mid;
@@ -385,7 +387,7 @@ void breathing(uint8_t delay)	{
 	}
 }
 
-void adjust_brightness(uint16_t channel, uint8_t val)	{
+void adjust_brightness(uint32_t channel, uint8_t val)	{
 	const int maxBrightness = 1000;
 	__HAL_TIM_SET_COMPARE(&htim2, channel, val * maxBrightness / 100);
 }
@@ -398,6 +400,12 @@ void EXTI15_10_IRQHandler(void)
 		KeyPressed = SET;
 
 	HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_13);
+}
+
+void pulse(uint32_t channel, uint8_t val, uint8_t time)	{
+	adjust_brightness(channel, val);
+	HAL_Delay(time);
+	adjust_brightness(channel, 0);
 }
 
 //void initialize(uint16_t timer_count_value, enum Num_Channels_In chanin, enum Num_Channels_Out chanout, enum Clock_Reference clkref){}
