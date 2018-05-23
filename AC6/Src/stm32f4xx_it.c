@@ -216,16 +216,19 @@ void TIM2_IRQHandler(void)
 /**
 * @brief This function handles EXTI line[15:10] interrupts.
 */
-//void EXTI15_10_IRQHandler(void)
-//{
-//  /* USER CODE BEGIN EXTI15_10_IRQn 0 */
-//
-//  /* USER CODE END EXTI15_10_IRQn 0 */
-//  HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_13);
-//  /* USER CODE BEGIN EXTI15_10_IRQn 1 */
-//
-//  /* USER CODE END EXTI15_10_IRQn 1 */
-//}
+void EXTI15_10_IRQHandler(void)
+{
+  /* USER CODE BEGIN EXTI15_10_IRQn 0 */
+	for (uint16_t i = 0; i < 0xFFFF; i++); // software button de-bounce
+	if (HAL_GPIO_ReadPin(PB1_GPIO_Port, PB1_Pin))	// interrupt from user push button
+		KeyPressed = SET;
+
+  /* USER CODE END EXTI15_10_IRQn 0 */
+  HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_13);
+  /* USER CODE BEGIN EXTI15_10_IRQn 1 */
+
+  /* USER CODE END EXTI15_10_IRQn 1 */
+}
 
 /* USER CODE BEGIN 1 */
 

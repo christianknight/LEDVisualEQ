@@ -67,7 +67,6 @@ uint32_t ADC_Block_Size = DEFAULT_BLOCKSIZE;	//!< Number of samples user accesse
 uint32_t ADC_Buffer_Size = 2*DEFAULT_BLOCKSIZE; //!< Total buffer size being filled by DMA for ADC/DAC
 enum Processor_Task volatile Sampler_Status;
 volatile int Lower_Ready = 0;      // Set by the ISR to indicate which
-extern __IO FlagStatus KeyPressed;
 
 float32_t mean;	// for storing average value
 const float offset = -0.99;	// DC offset to add to filtered block
@@ -134,28 +133,6 @@ void do_mean(void)	{
 	arm_mean_f32(output_lo_mid,nsamp,&mean);
 	arm_mean_f32(output_mid_hi,nsamp,&mean);
 	arm_mean_f32(output_hi,nsamp,&mean);
-}
-
-// set/clear LEDs based on mean of filtered blocks
-void do_LEDs(void)	{
-	if(mean > thresh_lo) LED1_SET();
-	else LED1_RESET();
-	if(mean > thresh_lo_mid) LED2_SET();
-	else LED2_RESET();
-	if(mean > thresh_mid_hi) LED3_SET();
-	else LED3_RESET();
-	if(mean > thresh_hi) LED4_SET();
-	else LED4_RESET();
-}
-
-void flash(int delay)	{
-	while (1)
-	{
- 		LED1_SET(), LED2_SET(), LED3_SET(), LED4_SET();
- 		HAL_Delay(delay);
- 		LED1_RESET(), LED2_RESET(), LED3_RESET(), LED4_RESET();
- 		HAL_Delay(delay);
- 	}
 }
 
 // for sampling
@@ -390,16 +367,6 @@ void breathing(uint8_t delay)	{
 void adjust_brightness(uint32_t channel, uint8_t val)	{
 	const int maxBrightness = 1000;
 	__HAL_TIM_SET_COMPARE(&htim2, channel, val * maxBrightness / 100);
-}
-
-/* GPIO pins 10-15 external interrupt handler */
-void EXTI15_10_IRQHandler(void)
-{
-	for (uint16_t i = 0; i < 0xFFFF; i++); // software button de-bounce
-	if (HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13))
-		KeyPressed = SET;
-
-	HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_13);
 }
 
 void pulse(uint32_t channel, uint8_t val, uint8_t time)	{

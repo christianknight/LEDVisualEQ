@@ -8,6 +8,7 @@
 #define __LIGHTRAMP_H
 
 #include <stdint.h>
+#include "stm32f4xx.h"
 #include "stm32f4xx_hal.h"
 #include <math.h>
 #include "arm_math.h"
@@ -44,7 +45,6 @@ void do_scale(void);
 void do_abs(void);
 void do_offset(void);
 void do_mean(void);
-void flash(int);
 void initerror();
 void flagerror(int);
 void breathing(uint8_t);
@@ -83,6 +83,7 @@ enum Num_Channels_Out {
 };
 extern enum Num_Channels_Out Output_Configuration;
 extern enum Num_Channels_In Input_Configuration;
+__IO FlagStatus KeyPressed;
 
 // Error Handling
 static void print_error(int index);

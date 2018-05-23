@@ -78,7 +78,6 @@
 /* USER CODE BEGIN Private defines */
 
 extern uint32_t nsamp;
-// extern FlagStatus KeyPressed;   // detect button presses
 
 /* USER CODE END Private defines */
 
