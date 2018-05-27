@@ -63,6 +63,9 @@
 								<option id="gnu.c.link.option.libs.581138134" name="Libraries (-l)" superClass="gnu.c.link.option.libs" useByScannerDiscovery="false" />
 								<option id="gnu.c.link.option.paths.2038613591" name="Library search path (-L)" superClass="gnu.c.link.option.paths" useByScannerDiscovery="false" />
 								<option id="gnu.c.link.option.ldflags.403224306" name="Linker flags" superClass="gnu.c.link.option.ldflags" useByScannerDiscovery="false" value="-specs=nosys.specs -specs=nano.specs" valueType="string" />
+								<option id="gnu.c.link.option.userobjs.1956991764" superClass="gnu.c.link.option.userobjs" useByScannerDiscovery="false" valueType="userObjs">
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/Drivers/CMSIS/Lib/GCC/libarm_cortexM4lf_math.a}&quot;" />
+								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.c.linker.input.1981392927" superClass="cdt.managedbuild.tool.gnu.c.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)" />
 									<additionalInput kind="additionalinput" paths="$(LIBS)" />
