@@ -55,7 +55,6 @@ TIM_HandleTypeDef htim3;
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
-__IO FlagStatus KeyPressed = RESET;
 
 /* USER CODE END PV */
 
@@ -84,19 +83,6 @@ int main(void)
 {
 
   /* USER CODE BEGIN 1 */
-	setblocksize(nsamp);	// set number of samples per block
-
-	filt_init();	// set up filter structures
-
-	float32_t *input;
-
-	input = (float*)malloc(sizeof(float)*nsamp);	// allocate memory buffers for input block and filtered output blocks
-	output_lo = (float*)malloc(sizeof(float)*nsamp);
-	output_lo_mid = (float*)malloc(sizeof(float)*nsamp);
-	output_mid_hi = (float*)malloc(sizeof(float)*nsamp);
-	output_hi = (float*)malloc(sizeof(float)*nsamp);
-
-
 
   /* USER CODE END 1 */
 
@@ -126,34 +112,15 @@ int main(void)
 
   /* USER CODE BEGIN 2 */
 
-  // start PWM on all channels
-  HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1);
-  HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_2);
-  HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_3);
-  HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_4);
+  LightRamp_init();
 
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  while (KeyPressed == RESET); // wait for user button push
-  KeyPressed = RESET;	// reset button push flag
 
   int delay = 250;	// delay to use for pulses
   int val = 500;	// brightness value for pulse
-
-  // set initial brightness to 0 for all channels
-  adjust_brightness(TIM_CHANNEL_1, 0);
-  adjust_brightness(TIM_CHANNEL_2, 0);
-  adjust_brightness(TIM_CHANNEL_3, 0);
-  adjust_brightness(TIM_CHANNEL_4, 0);
-
-  HAL_TIM_OC_Start(&htim3, TIM_CHANNEL_1);
-
-  ADC_Input_Buffer = (uint32_t *)malloc(sizeof(uint32_t)*ADC_Buffer_Size);
-  DAC_Output_Buffer = (uint32_t *)malloc(sizeof(uint32_t)*ADC_Buffer_Size);
-
-  HAL_ADC_Start_DMA(&hadc1, (uint32_t *)ADC_Input_Buffer, ADC_Buffer_Size);
 
   while (1)
   {
@@ -166,7 +133,6 @@ int main(void)
 //	  do_abs();
 //	  do_offset();
 //	  do_mean();
-//	  do_LEDs();
 
 	  pulse(LED[2], delay, val);	// do pulse
 	  HAL_Delay(delay);	// wait for next pulse

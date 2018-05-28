@@ -6,7 +6,7 @@
 
 #include "LightRamp.h"
 
-uint32_t LED[4] = {LED1, LED2, LED3, LED4};
+uint32_t LED[NUM_LEDS] = {LED1, LED2, LED3, LED4};
 
 /* Filters */
 arm_biquad_cascade_df2T_instance_f32 filter_lo;
@@ -54,7 +54,8 @@ const float coefs_hi[] = {
 };
 
 /* Variables */
-extern TIM_HandleTypeDef htim2;
+extern TIM_HandleTypeDef htim2, htim3;
+extern ADC_HandleTypeDef hadc1;
 uint32_t nsamp = 20;	// number of samples per block
 extern enum Num_Channels_Out Output_Configuration;
 extern enum Num_Channels_In Input_Configuration;
@@ -83,6 +84,38 @@ float scale_lo = 3;
 float scale_lo_mid = 3;
 float scale_mid_hi = 4;
 float scale_hi = 5;
+
+void LightRamp_init(void)	{
+	setblocksize(nsamp);	// set number of samples per block
+
+	filt_init();	// set up filter structures
+
+	// allocate memory buffers for input block and filtered output blocks
+	input = (float*)malloc(sizeof(float)*nsamp);
+	output_lo = (float*)malloc(sizeof(float)*nsamp);
+	output_lo_mid = (float*)malloc(sizeof(float)*nsamp);
+	output_mid_hi = (float*)malloc(sizeof(float)*nsamp);
+	output_hi = (float*)malloc(sizeof(float)*nsamp);
+
+	// start PWM on all channels
+	for (int i = 0; i < NUM_LEDS; i++)
+		HAL_TIM_PWM_Start(LED_TIM, LED[i]);
+
+	// set initial brightness to 0 for all channels
+	for (int i = 0; i < NUM_LEDS; i++)
+		adjust_brightness(LED[i], 0);
+
+	KeyPressed = RESET;	// reset button push flag
+	while (KeyPressed == RESET); // wait for user button push
+	KeyPressed = RESET;	// reset button push flag
+
+	HAL_TIM_OC_Start(ADC_TIM, TIM_CHANNEL_1);
+
+	ADC_Input_Buffer = (uint32_t *)malloc(sizeof(uint32_t)*ADC_Buffer_Size);
+	DAC_Output_Buffer = (uint32_t *)malloc(sizeof(uint32_t)*ADC_Buffer_Size);
+
+	HAL_ADC_Start_DMA(ADC, (uint32_t *)ADC_Input_Buffer, ADC_Buffer_Size);
+}
 
 // set up filter structures
 void filt_init(void)	{
@@ -158,30 +191,32 @@ void setblocksize( uint32_t blksiz )
   ADC_Buffer_Size = 2*blksiz;
 }
 
-void getblock(float * working)
+void getblock(float *working)
 {
   uint32_t i;
 
-  // Wait for the DMA to finish filling a block of data
+  // wait for the DMA to finish filling a block of data
   Sampler_Status = WAIT_FOR_NEXT_BUFFER;
   while (Sampler_Status == WAIT_FOR_NEXT_BUFFER) __WFI();
 
-  // The DMA ISR sets the Lower_Ready flag to indicate whether we should
-  // be processing the upper or lower half of the DMA transfer block.
+  /* The DMA ISR sets the Lower_Ready flag to indicate whether we should
+   * be processing the upper or lower half of the DMA transfer block.
+   */
   if (Lower_Ready) {
-    inbuf = ADC_Input_Buffer;
-    outbuf = DAC_Output_Buffer;
-  } else {
-    inbuf = &(ADC_Input_Buffer[ADC_Block_Size]);
-    outbuf = &(DAC_Output_Buffer[ADC_Block_Size]);
+	  inbuf = ADC_Input_Buffer;
+	  outbuf = DAC_Output_Buffer;
+  }
+  else {
+	  inbuf = &(ADC_Input_Buffer[ADC_Block_Size]);
+	  outbuf = &(DAC_Output_Buffer[ADC_Block_Size]);
   }
 
-  // Now convert the valid ADC data into the caller's array of floats.
-  // Samples are normalized to range from -1.0 to 1.0
-  for (i=0; i< ADC_Block_Size; i++) {
-     // 1/32768 = 3.0517578e-05  (Multiplication is much faster than dividing)
-     working[i] = ((float)((int)inbuf[i]-32767))*3.0517578e-05f;
-  }
+  /* Now convert the valid ADC data into the caller's array of floats.
+   * Samples are normalized to range from -1.0 to 1.0.
+   */
+  for (i = 0; i < ADC_Block_Size; i++)
+	  // 1/32768 = 3.0517578e-05  (Multiplication is much faster than dividing)
+	  working[i] = ((float)((int)inbuf[i]-32767))*3.0517578e-05f;
 }
 
 void putblock(float * working)
@@ -347,26 +382,23 @@ static void print_error(int index){
 }
 
 void breathing(uint8_t delay)	{
-	int i;
-	for (i = 0; i < 100; i++){
-		adjust_brightness(TIM_CHANNEL_1, i);
-		adjust_brightness(TIM_CHANNEL_2, i);
-		adjust_brightness(TIM_CHANNEL_3, i);
-		adjust_brightness(TIM_CHANNEL_4, i);
+	int i, j;
+	static int len = 100;
+	for (i = 0; i < len; i++){
+		for (j = 0; j < NUM_LEDS; j++)
+			adjust_brightness(LED[j], i);
 		HAL_Delay(delay);
 	}
-	for (i = 100; i > 0; i--){
-		adjust_brightness(TIM_CHANNEL_1, i);
-		adjust_brightness(TIM_CHANNEL_2, i);
-		adjust_brightness(TIM_CHANNEL_3, i);
-		adjust_brightness(TIM_CHANNEL_4, i);
+	for (i = len; i > 0; i--){
+		for (j = 0; j < NUM_LEDS; j++)
+			adjust_brightness(LED[j], i);
 		HAL_Delay(delay);
 	}
 }
 
 void adjust_brightness(uint32_t channel, uint8_t val)	{
 	const int maxBrightness = 1000;
-	__HAL_TIM_SET_COMPARE(&htim2, channel, val * maxBrightness / 100);
+	__HAL_TIM_SET_COMPARE(LED_TIM, channel, val * maxBrightness / 100);
 }
 
 void pulse(uint32_t channel, uint8_t val, uint8_t time)	{

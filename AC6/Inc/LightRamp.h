@@ -22,7 +22,11 @@
 #define LED2	TIM_CHANNEL_2
 #define LED3	TIM_CHANNEL_3
 #define LED4	TIM_CHANNEL_4
-uint32_t LED[4];
+#define NUM_LEDS 4
+uint32_t LED[NUM_LEDS];
+#define LED_TIM &htim2
+#define ADC_TIM &htim3
+#define ADC &hadc1
 
 // Error handling
 #define ERRORBUFLEN 100		// number of errors to record in a circular buffer
@@ -50,6 +54,7 @@ void flagerror(int);
 void breathing(uint8_t);
 void adjust_brightness(uint32_t, uint8_t);
 void pulse(uint32_t, uint8_t, uint8_t);
+void LightRamp_init(void);
 
 
 /* Variable declarations */
@@ -91,6 +96,7 @@ extern int errorbuf[];
 extern int erroridx;
 
 // Buffer processing
+float32_t *input;
 float32_t *output_lo;
 float32_t *output_lo_mid;
 float32_t *output_mid_hi;
