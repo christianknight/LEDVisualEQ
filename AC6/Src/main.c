@@ -118,24 +118,20 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-
-  int delay = 250;	// delay to use for pulses
-  int val = 500;	// brightness value for pulse
-
   while (1)
   {
   /* USER CODE END WHILE */
 
   /* USER CODE BEGIN 3 */
 	  getblock(input);	// grabs 'blocksize' number of input samples
+	  arm_mean_f32(input,nsamp,&mean);	// get mean of input block
 //	  do_filter(input);
 //	  do_scale();
 //	  do_abs();
 //	  do_offset();
 //	  do_mean();
 
-	  pulse(LED[2], delay, val);	// do pulse
-	  HAL_Delay(delay);	// wait for next pulse
+	  adjust_brightness(LED[1], (mean + 1)/20);
   }
   /* USER CODE END 3 */
 

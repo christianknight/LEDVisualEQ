@@ -77,8 +77,6 @@
 
 /* USER CODE BEGIN Private defines */
 
-extern uint32_t nsamp;
-
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus

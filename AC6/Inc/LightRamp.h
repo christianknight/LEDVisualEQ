@@ -24,9 +24,9 @@
 #define LED4	TIM_CHANNEL_4
 #define NUM_LEDS 4
 uint32_t LED[NUM_LEDS];
-#define LED_TIM &htim2
-#define ADC_TIM &htim3
-#define ADC &hadc1
+#define H_LED_TIM &htim2
+#define H_ADC_TIM &htim3
+#define H_ADC &hadc1
 
 // Error handling
 #define ERRORBUFLEN 100		// number of errors to record in a circular buffer
@@ -41,6 +41,12 @@ uint32_t LED[NUM_LEDS];
 // Sampling
 #define DEFAULT_BLOCKSIZE 100	// default # samples per block of streamed ADC/DAC data
 
+// Filtering
+#define SECTIONS_LO 3
+#define SECTIONS_LO_MID 6
+#define SECTIONS_MID_HI 6
+#define SECTIONS_HI 4
+#define COEFS_PER_SECTION 5
 
 /* Function declarations */
 void filt_init(void);
@@ -52,8 +58,8 @@ void do_mean(void);
 void initerror();
 void flagerror(int);
 void breathing(uint8_t);
-void adjust_brightness(uint32_t, uint8_t);
-void pulse(uint32_t, uint8_t, uint8_t);
+void adjust_brightness(uint32_t, float32_t);
+void pulse(uint32_t, float32_t, uint8_t);
 void LightRamp_init(void);
 
 
@@ -89,6 +95,7 @@ enum Num_Channels_Out {
 extern enum Num_Channels_Out Output_Configuration;
 extern enum Num_Channels_In Input_Configuration;
 __IO FlagStatus KeyPressed;
+uint32_t nsamp;	// number of samples per block
 
 // Error Handling
 static void print_error(int index);
@@ -101,5 +108,12 @@ float32_t *output_lo;
 float32_t *output_lo_mid;
 float32_t *output_mid_hi;
 float32_t *output_hi;
+
+// Filtering
+arm_biquad_cascade_df2T_instance_f32 filter_lo, filter_lo_mid, filter_mid_hi, filter_hi;
+int sections_lo, sections_lo_mid, sections_mid_hi, sections_hi;
+float coefs_lo[SECTIONS_LO * COEFS_PER_SECTION], coefs_lo_mid[SECTIONS_LO_MID * COEFS_PER_SECTION],
+	coefs_mid_hi[SECTIONS_MID_HI * COEFS_PER_SECTION], coefs_hi[SECTIONS_HI * COEFS_PER_SECTION];
+float32_t mean;	// for storing average value
 
 #endif /* __LIGHTRAMP_H */

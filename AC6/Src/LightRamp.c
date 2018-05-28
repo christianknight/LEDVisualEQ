@@ -8,23 +8,17 @@
 
 uint32_t LED[NUM_LEDS] = {LED1, LED2, LED3, LED4};
 
-/* Filters */
-arm_biquad_cascade_df2T_instance_f32 filter_lo;
-arm_biquad_cascade_df2T_instance_f32 filter_lo_mid;
-arm_biquad_cascade_df2T_instance_f32 filter_mid_hi;
-arm_biquad_cascade_df2T_instance_f32 filter_hi;
-
 // low band
-const int sections_lo = 3;
-const float coefs_lo[] = {
+int sections_lo = SECTIONS_LO;
+float coefs_lo[] = {
 	2.603860e-01f, -5.206777e-01f, 2.603860e-01f, 1.997446e+00f, -9.974836e-01f,
 	1.037341e-01f, -2.072098e-01f, 1.037341e-01f, 1.996066e+00f, -9.960752e-01f,
 	3.691527e-03f, -7.382281e-03f, 3.691527e-03f, 1.999129e+00f, -9.991905e-01f
 };
 
 // low-mid band
-const int sections_lo_mid = 6;
-const float coefs_lo_mid[] ={
+int sections_lo_mid = SECTIONS_LO_MID;
+float coefs_lo_mid[] ={
 	6.828877e-01f, -1.352992e+00f, 6.828877e-01f, 1.978480e+00f, -9.863217e-01f,
 	6.828877e-01f, -1.365400e+00f, 6.828877e-01f, 1.993106e+00f, -9.944085e-01f,
 	4.712733e-01f, -9.022227e-01f, 4.712733e-01f, 1.974448e+00f, -9.791039e-01f,
@@ -34,8 +28,8 @@ const float coefs_lo_mid[] ={
 };
 
 // mid-high band
-const int sections_mid_hi = 6;
-const float coefs_mid_hi[] = {
+int sections_mid_hi = SECTIONS_MID_HI;
+float coefs_mid_hi[] = {
 	6.822613e-01f, -1.249698e+00f, 6.822613e-01f, 1.859188e+00f, -9.826378e-01f,
 	6.822613e-01f, -1.328025e+00f, 6.822613e-01f, 1.914335e+00f, -9.866131e-01f,
 	4.759652e-01f, -7.833861e-01f, 4.759652e-01f, 1.865677e+00f, -9.704703e-01f,
@@ -45,8 +39,8 @@ const float coefs_mid_hi[] = {
 };
 
 // high band
-const int sections_hi = 4;
-const float coefs_hi[] = {
+int sections_hi = SECTIONS_HI;
+float coefs_hi[] = {
 	1.107652e+00f, -1.971959e+00f, 1.107652e+00f, 1.597598e+00f, -9.353801e-01f,
 	2.089015e+00f, -3.897720e+00f, 2.089015e+00f, 1.315506e+00f, -7.766538e-01f,
 	9.515451e+00f, -1.882463e+01f, 9.515451e+00f, 3.547976e-01f, -2.410542e-01f,
@@ -56,7 +50,6 @@ const float coefs_hi[] = {
 /* Variables */
 extern TIM_HandleTypeDef htim2, htim3;
 extern ADC_HandleTypeDef hadc1;
-uint32_t nsamp = 20;	// number of samples per block
 extern enum Num_Channels_Out Output_Configuration;
 extern enum Num_Channels_In Input_Configuration;
 int errorbuf[ERRORBUFLEN];
@@ -64,12 +57,11 @@ int first_error = 0;
 int erroridx = 0;
 volatile uint32_t *ADC_Input_Buffer = NULL;
 volatile uint32_t *DAC_Output_Buffer = NULL;
-uint32_t ADC_Block_Size = DEFAULT_BLOCKSIZE;	//!< Number of samples user accesses per data block
-uint32_t ADC_Buffer_Size = 2*DEFAULT_BLOCKSIZE; //!< Total buffer size being filled by DMA for ADC/DAC
+uint32_t ADC_Block_Size = DEFAULT_BLOCKSIZE;	// number of samples user accesses per data block
+uint32_t ADC_Buffer_Size = 2*DEFAULT_BLOCKSIZE; // total buffer size being filled by DMA for ADC/DAC
 enum Processor_Task volatile Sampler_Status;
-volatile int Lower_Ready = 0;      // Set by the ISR to indicate which
+volatile int Lower_Ready = 0;      // set by the ISR to indicate which
 
-float32_t mean;	// for storing average value
 const float offset = -0.99;	// DC offset to add to filtered block
 
 // thresholds for turning LEDs on/off
@@ -86,6 +78,7 @@ float scale_mid_hi = 4;
 float scale_hi = 5;
 
 void LightRamp_init(void)	{
+	nsamp = 20;	// number of samples per block
 	setblocksize(nsamp);	// set number of samples per block
 
 	filt_init();	// set up filter structures
@@ -99,7 +92,7 @@ void LightRamp_init(void)	{
 
 	// start PWM on all channels
 	for (int i = 0; i < NUM_LEDS; i++)
-		HAL_TIM_PWM_Start(LED_TIM, LED[i]);
+		HAL_TIM_PWM_Start(H_LED_TIM, LED[i]);
 
 	// set initial brightness to 0 for all channels
 	for (int i = 0; i < NUM_LEDS; i++)
@@ -109,12 +102,12 @@ void LightRamp_init(void)	{
 	while (KeyPressed == RESET); // wait for user button push
 	KeyPressed = RESET;	// reset button push flag
 
-	HAL_TIM_OC_Start(ADC_TIM, TIM_CHANNEL_1);
+	HAL_TIM_OC_Start(H_ADC_TIM, TIM_CHANNEL_1);
 
 	ADC_Input_Buffer = (uint32_t *)malloc(sizeof(uint32_t)*ADC_Buffer_Size);
 	DAC_Output_Buffer = (uint32_t *)malloc(sizeof(uint32_t)*ADC_Buffer_Size);
 
-	HAL_ADC_Start_DMA(ADC, (uint32_t *)ADC_Input_Buffer, ADC_Buffer_Size);
+	HAL_ADC_Start_DMA(H_ADC, (uint32_t *)ADC_Input_Buffer, ADC_Buffer_Size);
 }
 
 // set up filter structures
@@ -396,12 +389,11 @@ void breathing(uint8_t delay)	{
 	}
 }
 
-void adjust_brightness(uint32_t channel, uint8_t val)	{
-	const int maxBrightness = 1000;
-	__HAL_TIM_SET_COMPARE(LED_TIM, channel, val * maxBrightness / 100);
+void adjust_brightness(uint32_t channel, float32_t val)	{
+	__HAL_TIM_SET_COMPARE(H_LED_TIM, channel, (uint16_t)(val * 0xFFFF));
 }
 
-void pulse(uint32_t channel, uint8_t val, uint8_t time)	{
+void pulse(uint32_t channel, float32_t val, uint8_t time)	{
 	adjust_brightness(channel, val);
 	HAL_Delay(time);
 	adjust_brightness(channel, 0);
