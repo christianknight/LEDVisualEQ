@@ -42,7 +42,7 @@ uint32_t LED[NUM_LEDS];
 #define DEFAULT_BLOCKSIZE 100	// default # samples per block of streamed ADC/DAC data
 
 // Filtering
-#define SECTIONS_LO 3
+#define SECTIONS_LO 2
 #define SECTIONS_LO_MID 6
 #define SECTIONS_MID_HI 6
 #define SECTIONS_HI 4
