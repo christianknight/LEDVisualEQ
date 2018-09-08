@@ -77,7 +77,7 @@ float scale_mid_hi = 4;
 float scale_hi = 5;
 
 void LightRamp_init(void)	{
-	nsamp = 20;	// number of samples per block
+	nsamp = BLOCKSIZE;	// number of samples per block
 	setblocksize(nsamp);	// set number of samples per block
 
 	filt_init();	// set up filter structures

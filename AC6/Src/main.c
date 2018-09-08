@@ -135,7 +135,7 @@ int main(void)
 //	  do_offset();
 //	  do_mean();
 
-	  adjust_brightness(LED[1], (mean + 1)/20);
+	  adjust_brightness(LED[1], (mean + 1) * 0.14);
 
   }
   /* USER CODE END 3 */
