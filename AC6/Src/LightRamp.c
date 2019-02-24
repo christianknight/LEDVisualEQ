@@ -154,10 +154,10 @@ void do_offset(void)	{
 
 // get mean of each filtered block
 void do_mean(void)	{
-	arm_mean_f32(output_lo,nsamp,&mean);
-	arm_mean_f32(output_lo_mid,nsamp,&mean);
-	arm_mean_f32(output_mid_hi,nsamp,&mean);
-	arm_mean_f32(output_hi,nsamp,&mean);
+	arm_mean_f32(output_lo,nsamp,&mean_lo);
+	arm_mean_f32(output_lo_mid,nsamp,&mean_lo_mid);
+	arm_mean_f32(output_mid_hi,nsamp,&mean_mid_hi);
+	arm_mean_f32(output_hi,nsamp,&mean_hi);
 }
 
 // for sampling

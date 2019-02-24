@@ -114,6 +114,6 @@ arm_biquad_cascade_df2T_instance_f32 filter_lo, filter_lo_mid, filter_mid_hi, fi
 int sections_lo, sections_lo_mid, sections_mid_hi, sections_hi;
 float coefs_lo[SECTIONS_LO * COEFS_PER_SECTION], coefs_lo_mid[SECTIONS_LO_MID * COEFS_PER_SECTION],
 	coefs_mid_hi[SECTIONS_MID_HI * COEFS_PER_SECTION], coefs_hi[SECTIONS_HI * COEFS_PER_SECTION];
-float32_t mean;	// for storing average value
+float32_t mean_lo, mean_lo_mid, mean_mid_hi, mean_hi;	// for storing average value
 
 #endif /* __LIGHTRAMP_H */
