@@ -109,6 +109,10 @@ float32_t *output_lo_mid;
 float32_t *output_mid_hi;
 float32_t *output_hi;
 
+// Buffers to hold previous filter samples
+float32_t pstate_lo[2*SECTIONS_LO], pstate_lo_mid[2*SECTIONS_LO_MID],
+	pstate_mid_hi[2*SECTIONS_MID_HI], pstate_hi[2*SECTIONS_HI];
+
 // Filtering
 arm_biquad_cascade_df2T_instance_f32 filter_lo, filter_lo_mid, filter_mid_hi, filter_hi;
 int sections_lo, sections_lo_mid, sections_mid_hi, sections_hi;

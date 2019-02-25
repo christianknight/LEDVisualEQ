@@ -63,18 +63,11 @@ volatile int Lower_Ready = 0;      // set by the ISR to indicate which
 
 const float offset = -0.99;	// DC offset to add to filtered block
 
-// thresholds for turning LEDs on/off
-float thresh_lo = -0.6;
-float thresh_lo_mid = -0.65;
-float thresh_mid_hi = -0.8;
-float thresh_hi = -0.8;
-
 // scaling factors for each filter
-float scale_input = 1;
-float scale_lo = 3;
-float scale_lo_mid = 3;
-float scale_mid_hi = 4;
-float scale_hi = 5;
+float scale_lo = 22;
+float scale_lo_mid = 24;
+float scale_mid_hi = 1;
+float scale_hi = 40;
 
 void LightRamp_init(void)	{
 	nsamp = BLOCKSIZE;	// number of samples per block
@@ -111,53 +104,50 @@ void LightRamp_init(void)	{
 
 // set up filter structures
 void filt_init(void)	{
-	// buffers to hold previous filter samples
-	float32_t pstate_lo[2*sections_lo], pstate_lo_mid[2*sections_lo_mid],
-		pstate_mid_hi[2*sections_mid_hi], pstate_hi[2*sections_hi];
-	arm_biquad_cascade_df2T_init_f32(&filter_lo,sections_lo,coefs_lo,pstate_lo);
-	arm_biquad_cascade_df2T_init_f32(&filter_lo_mid,sections_lo_mid,coefs_lo_mid,pstate_lo_mid);
-	arm_biquad_cascade_df2T_init_f32(&filter_mid_hi,sections_mid_hi,coefs_mid_hi,pstate_mid_hi);
-	arm_biquad_cascade_df2T_init_f32(&filter_hi,sections_hi,coefs_hi,pstate_hi);
+	arm_biquad_cascade_df2T_init_f32(&filter_lo, sections_lo, coefs_lo, pstate_lo);
+	arm_biquad_cascade_df2T_init_f32(&filter_lo_mid, sections_lo_mid, coefs_lo_mid, pstate_lo_mid);
+	arm_biquad_cascade_df2T_init_f32(&filter_mid_hi, sections_mid_hi, coefs_mid_hi, pstate_mid_hi);
+	arm_biquad_cascade_df2T_init_f32(&filter_hi, sections_hi, coefs_hi, pstate_hi);
 }
 
 // execute each filter
 void do_filter(float32_t *input)	{
-	arm_biquad_cascade_df2T_f32(&filter_lo,input,output_lo,nsamp);
-	arm_biquad_cascade_df2T_f32(&filter_lo_mid,input,output_lo_mid,nsamp);
-	arm_biquad_cascade_df2T_f32(&filter_mid_hi,input,output_mid_hi,nsamp);
-	arm_biquad_cascade_df2T_f32(&filter_hi,input,output_hi,nsamp);
+	arm_biquad_cascade_df2T_f32(&filter_lo, input, output_lo, nsamp);
+	arm_biquad_cascade_df2T_f32(&filter_lo_mid, input, output_lo_mid, nsamp);
+	arm_biquad_cascade_df2T_f32(&filter_mid_hi, input, output_mid_hi, nsamp);
+	arm_biquad_cascade_df2T_f32(&filter_hi, input, output_hi, nsamp);
 }
 
 // scale each filtered block up
 void do_scale(void)	{
-	arm_scale_f32(output_lo,scale_lo,output_lo,nsamp);
-	arm_scale_f32(output_lo_mid,scale_lo_mid,output_lo_mid,nsamp);
-	arm_scale_f32(output_mid_hi,scale_mid_hi,output_mid_hi,nsamp);
-	arm_scale_f32(output_hi,scale_hi,output_hi,nsamp);
+	arm_scale_f32(output_lo, scale_lo, output_lo, nsamp);
+	arm_scale_f32(output_lo_mid, scale_lo_mid, output_lo_mid, nsamp);
+	arm_scale_f32(output_mid_hi, scale_mid_hi, output_mid_hi, nsamp);
+	arm_scale_f32(output_hi, scale_hi, output_hi, nsamp);
 }
 
 // get absolute value of each filtered block
 void do_abs(void)	{
-	arm_abs_f32(output_lo,output_lo,nsamp);
-	arm_abs_f32(output_lo_mid,output_lo_mid,nsamp);
-	arm_abs_f32(output_mid_hi,output_mid_hi,nsamp);
-	arm_abs_f32(output_hi,output_hi,nsamp);
+	arm_abs_f32(output_lo, output_lo, nsamp);
+	arm_abs_f32(output_lo_mid, output_lo_mid, nsamp);
+	arm_abs_f32(output_mid_hi, output_mid_hi, nsamp);
+	arm_abs_f32(output_hi, output_hi, nsamp);
 }
 
 // remove DC offset from filtered block
 void do_offset(void)	{
-	arm_offset_f32(output_lo,offset,output_lo,nsamp);
-	arm_offset_f32(output_lo_mid,offset,output_lo_mid,nsamp);
-	arm_offset_f32(output_mid_hi,offset,output_mid_hi,nsamp);
-	arm_offset_f32(output_hi,offset,output_hi,nsamp);
+	arm_offset_f32(output_lo, offset, output_lo, nsamp);
+	arm_offset_f32(output_lo_mid, offset, output_lo_mid, nsamp);
+	arm_offset_f32(output_mid_hi, offset, output_mid_hi, nsamp);
+	arm_offset_f32(output_hi, offset, output_hi, nsamp);
 }
 
 // get mean of each filtered block
 void do_mean(void)	{
-	arm_mean_f32(output_lo,nsamp,&mean_lo);
-	arm_mean_f32(output_lo_mid,nsamp,&mean_lo_mid);
-	arm_mean_f32(output_mid_hi,nsamp,&mean_mid_hi);
-	arm_mean_f32(output_hi,nsamp,&mean_hi);
+	arm_mean_f32(output_lo, nsamp, &mean_lo);
+	arm_mean_f32(output_lo_mid, nsamp, &mean_lo_mid);
+	arm_mean_f32(output_mid_hi, nsamp, &mean_mid_hi);
+	arm_mean_f32(output_hi, nsamp, &mean_hi);
 }
 
 // for sampling
@@ -166,7 +156,7 @@ int getblocksize()
   return ADC_Block_Size;
 }
 
-void setblocksize( uint32_t blksiz )
+void setblocksize(uint32_t blksiz)
 {
   /*
    * setblocksize() should only be called before calling initialize().
@@ -253,7 +243,7 @@ void getblockstereo(float *chan1, float *chan2)
   uint32_t i;
 
   if (Input_Configuration == MONO_IN) {
-    getblock( chan1 );
+    getblock(chan1);
     return;
   }
 

@@ -128,14 +128,16 @@ int main(void)
 
   /* USER CODE BEGIN 3 */
 	  getblock(input);	// grabs 'blocksize' number of input samples
-	  arm_mean_f32(input,nsamp,&mean);	// get mean of input block
-//	  do_filter(input);
-//	  do_scale();
-//	  do_abs();
-//	  do_offset();
-//	  do_mean();
+	  do_filter(input);	// filter the input block
+	  do_scale();
+	  do_abs();
+	  do_offset();
+	  do_mean();
 
-	  adjust_brightness(LED[1], (mean + 1) * 0.14);
+	  adjust_brightness(LED[0], mean_lo);
+	  adjust_brightness(LED[1], mean_lo_mid);
+	  adjust_brightness(LED[2], mean_mid_hi);
+	  adjust_brightness(LED[3], mean_hi);
 
   }
   /* USER CODE END 3 */
