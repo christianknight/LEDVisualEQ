@@ -102,52 +102,59 @@ void LightRamp_init(void)	{
 	HAL_ADC_Start_DMA(H_ADC, (uint32_t *)ADC_Input_Buffer, ADC_Buffer_Size);
 }
 
-// set up filter structures
-void filt_init(void)	{
-	arm_biquad_cascade_df2T_init_f32(&filter_lo, sections_lo, coefs_lo, pstate_lo);
-	arm_biquad_cascade_df2T_init_f32(&filter_lo_mid, sections_lo_mid, coefs_lo_mid, pstate_lo_mid);
-	arm_biquad_cascade_df2T_init_f32(&filter_mid_hi, sections_mid_hi, coefs_mid_hi, pstate_mid_hi);
-	arm_biquad_cascade_df2T_init_f32(&filter_hi, sections_hi, coefs_hi, pstate_hi);
+/* Biquad IIR filtering routines */
+/* Set up biquad IIR filter structures */
+void
+filt_init(void) {
+    arm_biquad_cascade_df2T_init_f32(&filter_lo,     sections_lo,     coefs_lo,     pstate_lo);
+    arm_biquad_cascade_df2T_init_f32(&filter_lo_mid, sections_lo_mid, coefs_lo_mid, pstate_lo_mid);
+    arm_biquad_cascade_df2T_init_f32(&filter_mid_hi, sections_mid_hi, coefs_mid_hi, pstate_mid_hi);
+    arm_biquad_cascade_df2T_init_f32(&filter_hi,     sections_hi,     coefs_hi,     pstate_hi);
 }
 
-// execute each filter
-void do_filter(float32_t *input)	{
-	arm_biquad_cascade_df2T_f32(&filter_lo, input, output_lo, nsamp);
-	arm_biquad_cascade_df2T_f32(&filter_lo_mid, input, output_lo_mid, nsamp);
-	arm_biquad_cascade_df2T_f32(&filter_mid_hi, input, output_mid_hi, nsamp);
-	arm_biquad_cascade_df2T_f32(&filter_hi, input, output_hi, nsamp);
+/* Execute biquad IIR filter for each frequency band */
+void
+do_filter(float32_t * input) {
+    arm_biquad_cascade_df2T_f32(&filter_lo,     input, output_lo,     nsamp);
+    arm_biquad_cascade_df2T_f32(&filter_lo_mid, input, output_lo_mid, nsamp);
+    arm_biquad_cascade_df2T_f32(&filter_mid_hi, input, output_mid_hi, nsamp);
+    arm_biquad_cascade_df2T_f32(&filter_hi,     input, output_hi,     nsamp);
 }
 
-// scale each filtered block up
-void do_scale(void)	{
-	arm_scale_f32(output_lo, scale_lo, output_lo, nsamp);
-	arm_scale_f32(output_lo_mid, scale_lo_mid, output_lo_mid, nsamp);
-	arm_scale_f32(output_mid_hi, scale_mid_hi, output_mid_hi, nsamp);
-	arm_scale_f32(output_hi, scale_hi, output_hi, nsamp);
+/* Scale samples from each frequency band up */
+void
+do_scale(void) {
+    arm_scale_f32(output_lo,     scale_lo,     output_lo,     nsamp);
+    arm_scale_f32(output_lo_mid, scale_lo_mid, output_lo_mid, nsamp);
+    arm_scale_f32(output_mid_hi, scale_mid_hi, output_mid_hi, nsamp);
+    arm_scale_f32(output_hi,     scale_hi,     output_hi,     nsamp);
 }
 
-// get absolute value of each filtered block
-void do_abs(void)	{
-	arm_abs_f32(output_lo, output_lo, nsamp);
-	arm_abs_f32(output_lo_mid, output_lo_mid, nsamp);
-	arm_abs_f32(output_mid_hi, output_mid_hi, nsamp);
-	arm_abs_f32(output_hi, output_hi, nsamp);
+/* Transform samples from each frequency band into absolute values */
+void
+do_abs(void) {
+    arm_abs_f32(output_lo,     output_lo,     nsamp);
+    arm_abs_f32(output_lo_mid, output_lo_mid, nsamp);
+    arm_abs_f32(output_mid_hi, output_mid_hi, nsamp);
+    arm_abs_f32(output_hi,     output_hi,     nsamp);
 }
 
-// remove DC offset from filtered block
-void do_offset(void)	{
-	arm_offset_f32(output_lo, offset, output_lo, nsamp);
-	arm_offset_f32(output_lo_mid, offset, output_lo_mid, nsamp);
-	arm_offset_f32(output_mid_hi, offset, output_mid_hi, nsamp);
-	arm_offset_f32(output_hi, offset, output_hi, nsamp);
+/* Apply offset to samples from each frequency band */
+void
+do_offset(void) {
+    arm_offset_f32(output_lo,     offset, output_lo,     nsamp);
+    arm_offset_f32(output_lo_mid, offset, output_lo_mid, nsamp);
+    arm_offset_f32(output_mid_hi, offset, output_mid_hi, nsamp);
+    arm_offset_f32(output_hi,     offset, output_hi,     nsamp);
 }
 
-// get mean of each filtered block
-void do_mean(void)	{
-	arm_mean_f32(output_lo, nsamp, &mean_lo);
-	arm_mean_f32(output_lo_mid, nsamp, &mean_lo_mid);
-	arm_mean_f32(output_mid_hi, nsamp, &mean_mid_hi);
-	arm_mean_f32(output_hi, nsamp, &mean_hi);
+/* Get mean values of samples from each frequency band */
+void
+do_mean(void) {
+    arm_mean_f32(output_lo,     nsamp, &mean_lo);
+    arm_mean_f32(output_lo_mid, nsamp, &mean_lo_mid);
+    arm_mean_f32(output_mid_hi, nsamp, &mean_mid_hi);
+    arm_mean_f32(output_hi,     nsamp, &mean_hi);
 }
 
 // for sampling
@@ -378,8 +385,10 @@ void breathing(uint8_t delay)	{
 	}
 }
 
-void adjust_brightness(uint32_t channel, float32_t val)	{
-	__HAL_TIM_SET_COMPARE(H_LED_TIM, channel, (uint16_t)(val * 0xFFFF));
+/* Set compare-capture value to given channel of TIM2 to adjust individual LED PWM dimming level */
+void
+adjust_brightness(uint32_t channel, float32_t val) {
+    __HAL_TIM_SET_COMPARE(H_LED_TIM, channel, (uint16_t)(val * 0xFFFF));
 }
 
 void pulse(uint32_t channel, float32_t val, uint8_t time)	{
@@ -387,5 +396,3 @@ void pulse(uint32_t channel, float32_t val, uint8_t time)	{
 	HAL_Delay(time);
 	adjust_brightness(channel, 0);
 }
-
-//void initialize(uint16_t timer_count_value, enum Num_Channels_In chanin, enum Num_Channels_Out chanout, enum Clock_Reference clkref){}
