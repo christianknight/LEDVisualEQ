@@ -86,6 +86,7 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
+void adjust_brightness (uint32_t channel, float32_t val);
 
 /* USER CODE END PFP */
 
@@ -130,6 +131,11 @@ int main(void)
   /* USER CODE BEGIN 2 */
 
   LightRamp_init();
+
+  /* Set initial brightness off all LEDs to none */
+  for (uint8_t i = 0; i < NUM_LEDS; i++) {
+      adjust_brightness(LED[i], 0);
+  }
 
   /* Set up biquad IIR filter structures */
   filt_init(&filter_lo,     sections_lo,     coefs_lo,     pstate_lo);
@@ -477,6 +483,12 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+
+/* Set compare-capture value to given channel of TIM2 to adjust individual LED PWM dimming level */
+void
+adjust_brightness(uint32_t channel, float32_t val) {
+    __HAL_TIM_SET_COMPARE(H_LED_TIM, channel, (uint16_t)(val * 0xFFFF));
+}
 
 /* USER CODE END 4 */
 

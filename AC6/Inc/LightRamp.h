@@ -58,11 +58,7 @@ void do_mean   (float32_t * input, uint32_t len, float32_t * mean_val);
 
 void initerror();
 void flagerror(int);
-void breathing(uint8_t);
-void adjust_brightness(uint32_t, float32_t);
-void pulse(uint32_t, float32_t, uint8_t);
 void LightRamp_init(void);
-
 
 /* Variable declarations */
 // Sampling

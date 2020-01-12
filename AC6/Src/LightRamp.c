@@ -69,10 +69,6 @@ void LightRamp_init(void)	{
 	for (int i = 0; i < NUM_LEDS; i++)
 		HAL_TIM_PWM_Start(H_LED_TIM, LED[i]);
 
-	// set initial brightness to 0 for all channels
-	for (int i = 0; i < NUM_LEDS; i++)
-		adjust_brightness(LED[i], 0);
-
 	KeyPressed = RESET;	// reset button push flag
 	while (KeyPressed == RESET); // wait for user button push
 	KeyPressed = RESET;	// reset button push flag
@@ -333,31 +329,4 @@ static void print_error(int index){
     else error = "UNKNOWN";
 
     // printf("\n*** ERROR %d ***: %s\n",index, error);
-}
-
-void breathing(uint8_t delay)	{
-	int i, j;
-	static int len = 100;
-	for (i = 0; i < len; i++){
-		for (j = 0; j < NUM_LEDS; j++)
-			adjust_brightness(LED[j], i);
-		HAL_Delay(delay);
-	}
-	for (i = len; i > 0; i--){
-		for (j = 0; j < NUM_LEDS; j++)
-			adjust_brightness(LED[j], i);
-		HAL_Delay(delay);
-	}
-}
-
-/* Set compare-capture value to given channel of TIM2 to adjust individual LED PWM dimming level */
-void
-adjust_brightness(uint32_t channel, float32_t val) {
-    __HAL_TIM_SET_COMPARE(H_LED_TIM, channel, (uint16_t)(val * 0xFFFF));
-}
-
-void pulse(uint32_t channel, float32_t val, uint8_t time)	{
-	adjust_brightness(channel, val);
-	HAL_Delay(time);
-	adjust_brightness(channel, 0);
 }
