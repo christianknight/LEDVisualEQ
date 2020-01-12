@@ -489,7 +489,7 @@ static void MX_GPIO_Init(void)
 /* Set compare-capture value to given channel of TIM2 to adjust individual LED PWM dimming level */
 void
 adjust_brightness(uint32_t channel, float32_t val) {
-    __HAL_TIM_SET_COMPARE(H_LED_TIM, channel, (uint16_t)(val * 0xFFFF));
+    __HAL_TIM_SET_COMPARE(H_LED_TIM, channel, (uint32_t)(val * 0xFFFFFFFF));
 }
 
 /* USER CODE END 4 */
