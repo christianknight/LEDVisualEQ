@@ -127,13 +127,40 @@ int main(void)
   /* USER CODE END WHILE */
 
   /* USER CODE BEGIN 3 */
-	  getblock(input);	// grabs 'blocksize' number of input samples
-	  do_filter(input);	// filter the input block
-	  do_scale();
-	  do_abs();
-	  do_offset();
-	  do_mean();
+      /* Aquire a block of raw input samples */
+      getblock(input);
 
+      /* Filter the raw input block into each respective output block */
+      do_filter(&filter_lo,     input, output_lo,     nsamp);
+      do_filter(&filter_lo_mid, input, output_lo_mid, nsamp);
+      do_filter(&filter_mid_hi, input, output_mid_hi, nsamp);
+      do_filter(&filter_hi,     input, output_hi,     nsamp);
+
+      /* Scale up each filtered output block by scalar amount */
+      do_scale(output_lo,     scale_lo,     output_lo,     nsamp);
+      do_scale(output_lo_mid, scale_lo_mid, output_lo_mid, nsamp);
+      do_scale(output_mid_hi, scale_mid_hi, output_mid_hi, nsamp);
+      do_scale(output_hi,     scale_hi,     output_hi,     nsamp);
+
+      /* Transform each filtered output block into absolute values */
+      do_abs(output_lo,     output_lo,     nsamp);
+      do_abs(output_lo_mid, output_lo_mid, nsamp);
+      do_abs(output_mid_hi, output_mid_hi, nsamp);
+      do_abs(output_hi,     output_hi,     nsamp);
+
+      /* Remove the DC offset from each filtered output block */
+      do_offset(output_lo,     offset, output_lo,     nsamp);
+      do_offset(output_lo_mid, offset, output_lo_mid, nsamp);
+      do_offset(output_mid_hi, offset, output_mid_hi, nsamp);
+      do_offset(output_hi,     offset, output_hi,     nsamp);
+
+      /* Calculate mean value of each filtered and transformed output block */
+      do_mean(output_lo,     nsamp, &mean_lo);
+      do_mean(output_lo_mid, nsamp, &mean_lo_mid);
+      do_mean(output_mid_hi, nsamp, &mean_mid_hi);
+      do_mean(output_hi,     nsamp, &mean_hi);
+
+      /* Adjust individual LED dimming based on mean values of each frequency band */
 	  adjust_brightness(LED[0], mean_lo);
 	  adjust_brightness(LED[1], mean_lo_mid);
 	  adjust_brightness(LED[2], mean_mid_hi);

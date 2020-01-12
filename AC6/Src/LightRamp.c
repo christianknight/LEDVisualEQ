@@ -61,6 +61,12 @@ uint32_t ADC_Buffer_Size = 2*DEFAULT_BLOCKSIZE; // total buffer size being fille
 enum Processor_Task volatile Sampler_Status;
 volatile int Lower_Ready = 0;      // set by the ISR to indicate which
 
+float32_t *input,
+          *output_lo,
+          *output_lo_mid,
+          *output_mid_hi,
+          *output_hi;
+
 const float offset = -0.99;	// DC offset to add to filtered block
 
 // scaling factors for each filter
@@ -113,49 +119,34 @@ filt_init(arm_biquad_cascade_df2T_instance_f32 * filt, int sects, float * coefs,
     arm_biquad_cascade_df2T_init_f32(filt, sects, coefs, pstate);
 }
 
-/* Execute biquad IIR filter for each frequency band */
+/* Execute biquad IIR filter on samples in input buffer */
 void
-do_filter(float32_t * input) {
-    arm_biquad_cascade_df2T_f32(&filter_lo,     input, output_lo,     nsamp);
-    arm_biquad_cascade_df2T_f32(&filter_lo_mid, input, output_lo_mid, nsamp);
-    arm_biquad_cascade_df2T_f32(&filter_mid_hi, input, output_mid_hi, nsamp);
-    arm_biquad_cascade_df2T_f32(&filter_hi,     input, output_hi,     nsamp);
+do_filter(arm_biquad_cascade_df2T_instance_f32 * filt, float32_t * input, float32_t * output, uint32_t len) {
+    arm_biquad_cascade_df2T_f32(filt, input, output, len);
 }
 
-/* Scale samples from each frequency band up */
+/* Scale samples from input buffer by scaling factor */
 void
-do_scale(void) {
-    arm_scale_f32(output_lo,     scale_lo,     output_lo,     nsamp);
-    arm_scale_f32(output_lo_mid, scale_lo_mid, output_lo_mid, nsamp);
-    arm_scale_f32(output_mid_hi, scale_mid_hi, output_mid_hi, nsamp);
-    arm_scale_f32(output_hi,     scale_hi,     output_hi,     nsamp);
+do_scale(float32_t * input, float32_t scale, float32_t * output, uint32_t len) {
+    arm_scale_f32(input, scale, output, len);
 }
 
-/* Transform samples from each frequency band into absolute values */
+/* Transform samples from input buffer into absolute values */
 void
-do_abs(void) {
-    arm_abs_f32(output_lo,     output_lo,     nsamp);
-    arm_abs_f32(output_lo_mid, output_lo_mid, nsamp);
-    arm_abs_f32(output_mid_hi, output_mid_hi, nsamp);
-    arm_abs_f32(output_hi,     output_hi,     nsamp);
+do_abs(float32_t * input, float32_t * output, uint32_t len) {
+    arm_abs_f32(input, output, len);
 }
 
-/* Apply offset to samples from each frequency band */
+/* Shift all samples in input buffer using given offset */
 void
-do_offset(void) {
-    arm_offset_f32(output_lo,     offset, output_lo,     nsamp);
-    arm_offset_f32(output_lo_mid, offset, output_lo_mid, nsamp);
-    arm_offset_f32(output_mid_hi, offset, output_mid_hi, nsamp);
-    arm_offset_f32(output_hi,     offset, output_hi,     nsamp);
+do_offset(float32_t * input, float32_t offset, float32_t * output, uint32_t len) {
+    arm_offset_f32(input, offset, output, len);
 }
 
-/* Get mean values of samples from each frequency band */
+/* Get mean values of samples in input buffer */
 void
-do_mean(void) {
-    arm_mean_f32(output_lo,     nsamp, &mean_lo);
-    arm_mean_f32(output_lo_mid, nsamp, &mean_lo_mid);
-    arm_mean_f32(output_mid_hi, nsamp, &mean_mid_hi);
-    arm_mean_f32(output_hi,     nsamp, &mean_hi);
+do_mean(float32_t * input, uint32_t len, float32_t * mean_val) {
+    arm_mean_f32(input, len, mean_val);
 }
 
 // for sampling

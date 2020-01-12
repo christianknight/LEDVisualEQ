@@ -49,12 +49,13 @@ uint32_t LED[NUM_LEDS];
 #define COEFS_PER_SECTION 5
 
 /* Function declarations */
-void filt_init(arm_biquad_cascade_df2T_instance_f32 * filt, int sects, float * coefs, float32_t * pstate);
-void do_filter(float32_t *input);
-void do_scale(void);
-void do_abs(void);
-void do_offset(void);
-void do_mean(void);
+void filt_init (arm_biquad_cascade_df2T_instance_f32 * filt, int sects, float * coefs, float32_t * pstate);
+void do_filter (arm_biquad_cascade_df2T_instance_f32 * filt, float32_t * input, float32_t * output, uint32_t len);
+void do_scale  (float32_t * input, float32_t scale, float32_t * output, uint32_t len);
+void do_abs    (float32_t * input, float32_t * output, uint32_t len);
+void do_offset (float32_t * input, float32_t offset, float32_t * output, uint32_t len);
+void do_mean   (float32_t * input, uint32_t len, float32_t * mean_val);
+
 void initerror();
 void flagerror(int);
 void breathing(uint8_t);
@@ -102,12 +103,19 @@ static void print_error(int index);
 extern int errorbuf[];
 extern int erroridx;
 
-// Buffer processing
-float32_t *input;
-float32_t *output_lo;
-float32_t *output_lo_mid;
-float32_t *output_mid_hi;
-float32_t *output_hi;
+/* Buffer processing */
+extern float32_t *input,
+                 *output_lo,
+                 *output_lo_mid,
+                 *output_mid_hi,
+                 *output_hi;
+
+extern float scale_lo,
+             scale_lo_mid,
+             scale_mid_hi,
+             scale_hi;
+
+extern const float offset;
 
 // Buffers to hold previous filter samples
 float32_t pstate_lo[2*SECTIONS_LO], pstate_lo_mid[2*SECTIONS_LO_MID],
