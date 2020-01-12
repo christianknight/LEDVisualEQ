@@ -61,36 +61,9 @@ uint32_t ADC_Buffer_Size = 2*DEFAULT_BLOCKSIZE; // total buffer size being fille
 enum Processor_Task volatile Sampler_Status;
 volatile int Lower_Ready = 0;      // set by the ISR to indicate which
 
-float32_t *input,
-          *output_lo,
-          *output_lo_mid,
-          *output_mid_hi,
-          *output_hi;
-
-const float offset = -0.99;	// DC offset to add to filtered block
-
-/* Scalar multipliers for each sample in a filtered block */
-float scale_lo     = 12;
-float scale_lo_mid = 6;
-float scale_mid_hi = 18;
-float scale_hi     = 34;
-
 void LightRamp_init(void)	{
 	nsamp = BLOCKSIZE;	// number of samples per block
 	setblocksize(nsamp);	// set number of samples per block
-
-    /* Set up biquad IIR filter structures */
-    filt_init(&filter_lo,     sections_lo,     coefs_lo,     pstate_lo);
-    filt_init(&filter_lo_mid, sections_lo_mid, coefs_lo_mid, pstate_lo_mid);
-    filt_init(&filter_mid_hi, sections_mid_hi, coefs_mid_hi, pstate_mid_hi);
-    filt_init(&filter_hi,     sections_hi,     coefs_hi,     pstate_hi);
-
-	// allocate memory buffers for input block and filtered output blocks
-	input = (float*)malloc(sizeof(float)*nsamp);
-	output_lo = (float*)malloc(sizeof(float)*nsamp);
-	output_lo_mid = (float*)malloc(sizeof(float)*nsamp);
-	output_mid_hi = (float*)malloc(sizeof(float)*nsamp);
-	output_hi = (float*)malloc(sizeof(float)*nsamp);
 
 	// start PWM on all channels
 	for (int i = 0; i < NUM_LEDS; i++)

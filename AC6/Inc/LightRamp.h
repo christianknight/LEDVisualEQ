@@ -103,20 +103,6 @@ static void print_error(int index);
 extern int errorbuf[];
 extern int erroridx;
 
-/* Buffer processing */
-extern float32_t *input,
-                 *output_lo,
-                 *output_lo_mid,
-                 *output_mid_hi,
-                 *output_hi;
-
-extern float scale_lo,
-             scale_lo_mid,
-             scale_mid_hi,
-             scale_hi;
-
-extern const float offset;
-
 // Buffers to hold previous filter samples
 float32_t pstate_lo[2*SECTIONS_LO], pstate_lo_mid[2*SECTIONS_LO_MID],
 	pstate_mid_hi[2*SECTIONS_MID_HI], pstate_hi[2*SECTIONS_HI];
