@@ -73,7 +73,11 @@ void LightRamp_init(void)	{
 	nsamp = BLOCKSIZE;	// number of samples per block
 	setblocksize(nsamp);	// set number of samples per block
 
-	filt_init();	// set up filter structures
+    /* Set up biquad IIR filter structures */
+    filt_init(&filter_lo,     sections_lo,     coefs_lo,     pstate_lo);
+    filt_init(&filter_lo_mid, sections_lo_mid, coefs_lo_mid, pstate_lo_mid);
+    filt_init(&filter_mid_hi, sections_mid_hi, coefs_mid_hi, pstate_mid_hi);
+    filt_init(&filter_hi,     sections_hi,     coefs_hi,     pstate_hi);
 
 	// allocate memory buffers for input block and filtered output blocks
 	input = (float*)malloc(sizeof(float)*nsamp);
@@ -103,13 +107,10 @@ void LightRamp_init(void)	{
 }
 
 /* Biquad IIR filtering routines */
-/* Set up biquad IIR filter structures */
+/* Initialize a biquad IIR filtering structure */
 void
-filt_init(void) {
-    arm_biquad_cascade_df2T_init_f32(&filter_lo,     sections_lo,     coefs_lo,     pstate_lo);
-    arm_biquad_cascade_df2T_init_f32(&filter_lo_mid, sections_lo_mid, coefs_lo_mid, pstate_lo_mid);
-    arm_biquad_cascade_df2T_init_f32(&filter_mid_hi, sections_mid_hi, coefs_mid_hi, pstate_mid_hi);
-    arm_biquad_cascade_df2T_init_f32(&filter_hi,     sections_hi,     coefs_hi,     pstate_hi);
+filt_init(arm_biquad_cascade_df2T_instance_f32 * filt, int sects, float * coefs, float32_t * pstate) {
+    arm_biquad_cascade_df2T_init_f32(filt, sects, coefs, pstate);
 }
 
 /* Execute biquad IIR filter for each frequency band */

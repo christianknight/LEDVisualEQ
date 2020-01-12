@@ -49,7 +49,7 @@ uint32_t LED[NUM_LEDS];
 #define COEFS_PER_SECTION 5
 
 /* Function declarations */
-void filt_init(void);
+void filt_init(arm_biquad_cascade_df2T_instance_f32 * filt, int sects, float * coefs, float32_t * pstate);
 void do_filter(float32_t *input);
 void do_scale(void);
 void do_abs(void);
