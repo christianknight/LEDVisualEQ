@@ -41,7 +41,7 @@
 #include "stm32f4xx_hal.h"
 
 /* USER CODE BEGIN Includes */
-#include "LightRamp.h"
+#include "biquad.h"
 
 /* USER CODE END Includes */
 
@@ -69,6 +69,11 @@ float scale_mid_hi = 18;
 float scale_hi     = 34;
 
 const float offset = -0.99;    /* DC offset to remove from each filtered block */
+
+float32_t mean_lo,
+          mean_lo_mid,
+          mean_mid_hi,
+          mean_hi;
 
 /* USER CODE END PV */
 
@@ -138,10 +143,7 @@ int main(void)
   }
 
   /* Set up biquad IIR filter structures */
-  filt_init(&filter_lo,     sections_lo,     coefs_lo,     pstate_lo);
-  filt_init(&filter_lo_mid, sections_lo_mid, coefs_lo_mid, pstate_lo_mid);
-  filt_init(&filter_mid_hi, sections_mid_hi, coefs_mid_hi, pstate_mid_hi);
-  filt_init(&filter_hi,     sections_hi,     coefs_hi,     pstate_hi);
+  bq_filt_init_all();
 
   /* Allocate memory buffers for input block and filtered output blocks */
   input         = (float *)malloc(sizeof(float) * nsamp);
@@ -164,34 +166,34 @@ int main(void)
       getblock(input);
 
       /* Filter the raw input block into each respective output block */
-      do_filter(&filter_lo,     input, output_lo,     nsamp);
-      do_filter(&filter_lo_mid, input, output_lo_mid, nsamp);
-      do_filter(&filter_mid_hi, input, output_mid_hi, nsamp);
-      do_filter(&filter_hi,     input, output_hi,     nsamp);
+      bq_do_filter(&bq_filter_lo,     input, output_lo,     nsamp);
+      bq_do_filter(&bq_filter_lo_mid, input, output_lo_mid, nsamp);
+      bq_do_filter(&bq_filter_mid_hi, input, output_mid_hi, nsamp);
+      bq_do_filter(&bq_filter_hi,     input, output_hi,     nsamp);
 
       /* Scale up each filtered output block by scalar amount */
-      do_scale(output_lo,     scale_lo,     output_lo,     nsamp);
-      do_scale(output_lo_mid, scale_lo_mid, output_lo_mid, nsamp);
-      do_scale(output_mid_hi, scale_mid_hi, output_mid_hi, nsamp);
-      do_scale(output_hi,     scale_hi,     output_hi,     nsamp);
+      bq_do_scale(output_lo,     scale_lo,     output_lo,     nsamp);
+      bq_do_scale(output_lo_mid, scale_lo_mid, output_lo_mid, nsamp);
+      bq_do_scale(output_mid_hi, scale_mid_hi, output_mid_hi, nsamp);
+      bq_do_scale(output_hi,     scale_hi,     output_hi,     nsamp);
 
       /* Transform each filtered output block into absolute values */
-      do_abs(output_lo,     output_lo,     nsamp);
-      do_abs(output_lo_mid, output_lo_mid, nsamp);
-      do_abs(output_mid_hi, output_mid_hi, nsamp);
-      do_abs(output_hi,     output_hi,     nsamp);
+      bq_do_abs(output_lo,     output_lo,     nsamp);
+      bq_do_abs(output_lo_mid, output_lo_mid, nsamp);
+      bq_do_abs(output_mid_hi, output_mid_hi, nsamp);
+      bq_do_abs(output_hi,     output_hi,     nsamp);
 
       /* Remove the DC offset from each filtered output block */
-      do_offset(output_lo,     offset, output_lo,     nsamp);
-      do_offset(output_lo_mid, offset, output_lo_mid, nsamp);
-      do_offset(output_mid_hi, offset, output_mid_hi, nsamp);
-      do_offset(output_hi,     offset, output_hi,     nsamp);
+      bq_do_offset(output_lo,     offset, output_lo,     nsamp);
+      bq_do_offset(output_lo_mid, offset, output_lo_mid, nsamp);
+      bq_do_offset(output_mid_hi, offset, output_mid_hi, nsamp);
+      bq_do_offset(output_hi,     offset, output_hi,     nsamp);
 
       /* Calculate mean value of each filtered and transformed output block */
-      do_mean(output_lo,     nsamp, &mean_lo);
-      do_mean(output_lo_mid, nsamp, &mean_lo_mid);
-      do_mean(output_mid_hi, nsamp, &mean_mid_hi);
-      do_mean(output_hi,     nsamp, &mean_hi);
+      bq_do_mean(output_lo,     nsamp, &mean_lo);
+      bq_do_mean(output_lo_mid, nsamp, &mean_lo_mid);
+      bq_do_mean(output_mid_hi, nsamp, &mean_mid_hi);
+      bq_do_mean(output_hi,     nsamp, &mean_hi);
 
       /* Adjust individual LED dimming based on mean values of each frequency band */
 	  adjust_brightness(LED[0], mean_lo);

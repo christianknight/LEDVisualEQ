@@ -11,10 +11,8 @@
 #include "stm32f4xx.h"
 #include "stm32f4xx_hal.h"
 #include <math.h>
-#include "arm_math.h"
 #include <stdlib.h>
 #include <stdio.h>
-
 
 /* Defines */
 // LED control
@@ -40,21 +38,6 @@ uint32_t LED[NUM_LEDS];
 
 // Sampling
 #define DEFAULT_BLOCKSIZE 100	// default # samples per block of streamed ADC/DAC data
-
-// Filtering
-#define SECTIONS_LO 2
-#define SECTIONS_LO_MID 6
-#define SECTIONS_MID_HI 6
-#define SECTIONS_HI 4
-#define COEFS_PER_SECTION 5
-
-/* Function declarations */
-void filt_init (arm_biquad_cascade_df2T_instance_f32 * filt, int sects, float * coefs, float32_t * pstate);
-void do_filter (arm_biquad_cascade_df2T_instance_f32 * filt, float32_t * input, float32_t * output, uint32_t len);
-void do_scale  (float32_t * input, float32_t scale, float32_t * output, uint32_t len);
-void do_abs    (float32_t * input, float32_t * output, uint32_t len);
-void do_offset (float32_t * input, float32_t offset, float32_t * output, uint32_t len);
-void do_mean   (float32_t * input, uint32_t len, float32_t * mean_val);
 
 void initerror();
 void flagerror(int);
@@ -98,16 +81,5 @@ uint32_t nsamp;	// number of samples per block
 static void print_error(int index);
 extern int errorbuf[];
 extern int erroridx;
-
-// Buffers to hold previous filter samples
-float32_t pstate_lo[2*SECTIONS_LO], pstate_lo_mid[2*SECTIONS_LO_MID],
-	pstate_mid_hi[2*SECTIONS_MID_HI], pstate_hi[2*SECTIONS_HI];
-
-// Filtering
-arm_biquad_cascade_df2T_instance_f32 filter_lo, filter_lo_mid, filter_mid_hi, filter_hi;
-int sections_lo, sections_lo_mid, sections_mid_hi, sections_hi;
-float coefs_lo[SECTIONS_LO * COEFS_PER_SECTION], coefs_lo_mid[SECTIONS_LO_MID * COEFS_PER_SECTION],
-	coefs_mid_hi[SECTIONS_MID_HI * COEFS_PER_SECTION], coefs_hi[SECTIONS_HI * COEFS_PER_SECTION];
-float32_t mean_lo, mean_lo_mid, mean_mid_hi, mean_hi;	// for storing average value
 
 #endif /* __LIGHTRAMP_H */

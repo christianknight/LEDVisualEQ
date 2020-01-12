@@ -8,44 +8,6 @@
 
 uint32_t LED[NUM_LEDS] = {LED1, LED2, LED3, LED4};
 
-// low band
-int sections_lo = SECTIONS_LO;
-float coefs_lo[] = {
-	1.258200e-01f, -2.513427e-01f, 1.258200e-01f, 1.994561e+00f, -9.945792e-01f,
-	7.923738e-03f, -1.584405e-02f, 7.923738e-03f, 1.997930e+00f, -9.979912e-01f
-};
-
-// low-mid band
-int sections_lo_mid = SECTIONS_LO_MID;
-float coefs_lo_mid[] = {
-	6.824965e-01f, -1.342789e+00f, 6.824965e-01f, 1.968462e+00f, -9.824747e-01f,
-	6.824965e-01f, -1.364243e+00f, 6.824965e-01f, 1.989989e+00f, -9.925206e-01f,
-	4.732228e-01f, -8.784125e-01f, 4.732228e-01f, 1.964619e+00f, -9.731216e-01f,
-	4.732228e-01f, -9.463310e-01f, 4.732228e-01f, 1.977077e+00f, -9.812105e-01f,
-	9.792858e-02f, -1.934950e-01f, 9.792858e-02f, 1.977834e+00f, -9.948572e-01f,
-	9.792858e-02f, -1.957116e-01f, 9.792858e-02f, 1.996086e+00f, -9.981879e-01f
-};
-
-// mid-high band
-int sections_mid_hi = SECTIONS_MID_HI;
-float coefs_mid_hi[] = {
-	6.821886e-01f, -1.226853e+00f, 6.821886e-01f, 1.838502e+00f, -9.778613e-01f,
-	6.821886e-01f, -1.329568e+00f, 6.821886e-01f, 1.910660e+00f, -9.837985e-01f,
-	4.808136e-01f, -7.363451e-01f, 4.808136e-01f, 1.848419e+00f, -9.628343e-01f,
-	4.808136e-01f, -9.517375e-01f, 4.808136e-01f, 1.879406e+00f, -9.672782e-01f,
-	9.794532e-02f, -1.786521e-01f, 9.794532e-02f, 1.842045e+00f, -9.936369e-01f,
-	9.794532e-02f, -1.901388e-01f, 9.794532e-02f, 1.927611e+00f, -9.956874e-01f
-};
-
-// high band
-int sections_hi = SECTIONS_HI;
-float coefs_hi[] = {
-	1.089714e+00f, -1.856104e+00f, 1.089714e+00f, 1.478079e+00f, -9.268764e-01f,
-	1.989986e+00f, -3.616470e+00f, 1.989986e+00f, 1.155312e+00f, -7.533239e-01f,
-	8.291499e+00f, -1.633572e+01f, 8.291499e+00f, 1.626331e-01f, -2.251002e-01f,
-	1.179967e-02f, -1.957278e-02f, 1.179967e-02f, 1.573169e+00f, -9.835571e-01f
-};
-
 /* Variables */
 extern TIM_HandleTypeDef htim2, htim3;
 extern ADC_HandleTypeDef hadc1;
@@ -79,43 +41,6 @@ void LightRamp_init(void)	{
 	DAC_Output_Buffer = (uint32_t *)malloc(sizeof(uint32_t)*ADC_Buffer_Size);
 
 	HAL_ADC_Start_DMA(H_ADC, (uint32_t *)ADC_Input_Buffer, ADC_Buffer_Size);
-}
-
-/* Biquad IIR filtering routines */
-/* Initialize a biquad IIR filtering structure */
-void
-filt_init(arm_biquad_cascade_df2T_instance_f32 * filt, int sects, float * coefs, float32_t * pstate) {
-    arm_biquad_cascade_df2T_init_f32(filt, sects, coefs, pstate);
-}
-
-/* Execute biquad IIR filter on samples in input buffer */
-void
-do_filter(arm_biquad_cascade_df2T_instance_f32 * filt, float32_t * input, float32_t * output, uint32_t len) {
-    arm_biquad_cascade_df2T_f32(filt, input, output, len);
-}
-
-/* Scale samples from input buffer by scaling factor */
-void
-do_scale(float32_t * input, float32_t scale, float32_t * output, uint32_t len) {
-    arm_scale_f32(input, scale, output, len);
-}
-
-/* Transform samples from input buffer into absolute values */
-void
-do_abs(float32_t * input, float32_t * output, uint32_t len) {
-    arm_abs_f32(input, output, len);
-}
-
-/* Shift all samples in input buffer using given offset */
-void
-do_offset(float32_t * input, float32_t offset, float32_t * output, uint32_t len) {
-    arm_offset_f32(input, offset, output, len);
-}
-
-/* Get mean values of samples in input buffer */
-void
-do_mean(float32_t * input, uint32_t len, float32_t * mean_val) {
-    arm_mean_f32(input, len, mean_val);
 }
 
 // for sampling
