@@ -69,11 +69,11 @@ float32_t *input,
 
 const float offset = -0.99;	// DC offset to add to filtered block
 
-// scaling factors for each filter
-float scale_lo = 22;
-float scale_lo_mid = 24;
-float scale_mid_hi = 1;
-float scale_hi = 40;
+/* Scalar multipliers for each sample in a filtered block */
+float scale_lo     = 12;
+float scale_lo_mid = 6;
+float scale_mid_hi = 18;
+float scale_hi     = 34;
 
 void LightRamp_init(void)	{
 	nsamp = BLOCKSIZE;	// number of samples per block
