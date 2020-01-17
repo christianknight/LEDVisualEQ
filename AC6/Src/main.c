@@ -176,19 +176,19 @@ int main(void)
       bq_do_filter(&bq_filter_mid_hi, input, output_mid_hi, nsamp);
       bq_do_filter(&bq_filter_hi,     input, output_hi,     nsamp);
 
-      /* Scale up each filtered output block by scalar amount */
-      bq_do_scale(output_lo,     scale_lo,     output_lo,     nsamp);
-      bq_do_scale(output_lo_mid, scale_lo_mid, output_lo_mid, nsamp);
-      bq_do_scale(output_mid_hi, scale_mid_hi, output_mid_hi, nsamp);
-      bq_do_scale(output_hi,     scale_hi,     output_hi,     nsamp);
-
       /* Transform each filtered output block into absolute values */
       bq_do_abs(output_lo,     output_lo,     nsamp);
       bq_do_abs(output_lo_mid, output_lo_mid, nsamp);
       bq_do_abs(output_mid_hi, output_mid_hi, nsamp);
       bq_do_abs(output_hi,     output_hi,     nsamp);
 
-      /* Remove the DC offset from each filtered output block */
+      /* Scale up all samples from each filtered block by given scaling factor */
+      bq_do_scale(output_lo,     scale_lo,     output_lo,     nsamp);
+      bq_do_scale(output_lo_mid, scale_lo_mid, output_lo_mid, nsamp);
+      bq_do_scale(output_mid_hi, scale_mid_hi, output_mid_hi, nsamp);
+      bq_do_scale(output_hi,     scale_hi,     output_hi,     nsamp);
+
+      /* Remove DC offset from each filtered block */
       bq_do_offset(output_lo,     offset, output_lo,     nsamp);
       bq_do_offset(output_lo_mid, offset, output_lo_mid, nsamp);
       bq_do_offset(output_mid_hi, offset, output_mid_hi, nsamp);
