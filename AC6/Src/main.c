@@ -75,6 +75,11 @@ float32_t mean_lo,
           mean_mid_hi,
           mean_hi;
 
+uint32_t brightness_lo,
+         brightness_lo_mid,
+         brightness_mid_hi,
+         brightness_hi;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -91,7 +96,7 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
-void adjust_brightness (uint32_t channel, float32_t val);
+void adjust_brightness (uint32_t channel, uint32_t val);
 
 /* USER CODE END PFP */
 
@@ -195,11 +200,17 @@ int main(void)
       bq_do_mean(output_mid_hi, nsamp, &mean_mid_hi);
       bq_do_mean(output_hi,     nsamp, &mean_hi);
 
+      /* Normalize each band's mean value to the input mean to get brightness values */
+      brightness_lo     = (uint32_t)((mean_lo     * scale_lo)     * 0x0000FFFF);
+      brightness_lo_mid = (uint32_t)((mean_lo_mid * scale_lo_mid) * 0x0000FFFF);
+      brightness_mid_hi = (uint32_t)((mean_mid_hi * scale_mid_hi) * 0x0000FFFF);
+      brightness_hi     = (uint32_t)((mean_hi     * scale_hi)     * 0x0000FFFF);
+
       /* Adjust individual LED dimming based on mean values of each frequency band */
-	  adjust_brightness(LED[0], mean_lo);
-	  adjust_brightness(LED[1], mean_lo_mid);
-	  adjust_brightness(LED[2], mean_mid_hi);
-	  adjust_brightness(LED[3], mean_hi);
+	  adjust_brightness(LED[0], brightness_lo);
+	  adjust_brightness(LED[1], brightness_lo_mid);
+	  adjust_brightness(LED[2], brightness_mid_hi);
+	  adjust_brightness(LED[3], brightness_hi);
 
   }
   /* USER CODE END 3 */
@@ -488,8 +499,8 @@ static void MX_GPIO_Init(void)
 
 /* Set compare-capture value to given channel of TIM2 to adjust individual LED PWM dimming level */
 void
-adjust_brightness(uint32_t channel, float32_t val) {
-    __HAL_TIM_SET_COMPARE(H_LED_TIM, channel, (uint32_t)(val * 0xFFFFFFFF));
+adjust_brightness(uint32_t channel, uint32_t val) {
+    __HAL_TIM_SET_COMPARE(H_LED_TIM, channel, val);
 }
 
 /* USER CODE END 4 */
