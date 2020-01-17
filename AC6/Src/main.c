@@ -68,7 +68,7 @@ float32_t scale_lo     = 5,
           scale_mid_hi = 8,
           scale_hi     = 10;
 
-const float offset = -0.99;    /* DC offset to remove from each filtered block */
+const float32_t offset = -0.99;
 
 float32_t mean_lo,
           mean_lo_mid,
@@ -151,11 +151,11 @@ int main(void)
   bq_filt_init_all();
 
   /* Allocate memory buffers for input block and filtered output blocks */
-  input         = (float *)malloc(sizeof(float) * nsamp);
-  output_lo     = (float *)malloc(sizeof(float) * nsamp);
-  output_lo_mid = (float *)malloc(sizeof(float) * nsamp);
-  output_mid_hi = (float *)malloc(sizeof(float) * nsamp);
-  output_hi     = (float *)malloc(sizeof(float) * nsamp);
+  input         = (float32_t *)malloc(sizeof(float32_t) * nsamp);
+  output_lo     = (float32_t *)malloc(sizeof(float32_t) * nsamp);
+  output_lo_mid = (float32_t *)malloc(sizeof(float32_t) * nsamp);
+  output_mid_hi = (float32_t *)malloc(sizeof(float32_t) * nsamp);
+  output_hi     = (float32_t *)malloc(sizeof(float32_t) * nsamp);
 
   /* USER CODE END 2 */
 
