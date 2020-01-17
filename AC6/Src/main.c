@@ -63,10 +63,10 @@ float32_t *input,
           *output_hi;
 
 /* Scalar multipliers for each sample in a filtered block */
-float scale_lo     = 12;
-float scale_lo_mid = 6;
-float scale_mid_hi = 18;
-float scale_hi     = 34;
+float32_t scale_lo     = 5,
+          scale_lo_mid = 4,
+          scale_mid_hi = 8,
+          scale_hi     = 10;
 
 const float offset = -0.99;    /* DC offset to remove from each filtered block */
 
