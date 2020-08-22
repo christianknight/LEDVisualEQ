@@ -36,6 +36,7 @@
 #include "stm32f4xx_it.h"
 
 /* USER CODE BEGIN 0 */
+#include "lightramp.h"
 
 /* USER CODE END 0 */
 
@@ -228,9 +229,11 @@ void TIM2_IRQHandler(void)
 void EXTI15_10_IRQHandler(void)
 {
   /* USER CODE BEGIN EXTI15_10_IRQn 0 */
-	for (uint16_t i = 0; i < 0xFFFF; i++); // software button de-bounce
-	if (HAL_GPIO_ReadPin(PB1_GPIO_Port, PB1_Pin))	// interrupt from user push button
-		KeyPressed = SET;
+    /* Handle interrupt from user button push */
+    for (uint16_t i = 0; i < 0xFFFF; i++);    /* Brief software delay for button de-bounce */
+    if (HAL_GPIO_ReadPin(PB1_GPIO_Port, PB1_Pin)) {
+        button_pressed = SET;
+    }
 
   /* USER CODE END EXTI15_10_IRQn 0 */
   HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_13);

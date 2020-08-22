@@ -44,7 +44,6 @@
 /* Includes ------------------------------------------------------------------*/
 
 /* USER CODE BEGIN Includes */
-#include "LightRamp.h"
 
 /* USER CODE END Includes */
 
@@ -78,8 +77,6 @@
 /* #define USE_FULL_ASSERT    1U */
 
 /* USER CODE BEGIN Private defines */
-
-#define BLOCKSIZE 50
 
 /* USER CODE END Private defines */
 

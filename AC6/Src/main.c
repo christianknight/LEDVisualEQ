@@ -42,6 +42,7 @@
 
 /* USER CODE BEGIN Includes */
 #include "biquad.h"
+#include "lightramp.h"
 
 /* USER CODE END Includes */
 
@@ -140,7 +141,7 @@ int main(void)
   MX_TIM3_Init();
   /* USER CODE BEGIN 2 */
 
-  LightRamp_init();
+  lightramp_init();
 
   /* Set initial brightness off all LEDs to none */
   for (uint8_t i = 0; i < NUM_LEDS; i++) {
@@ -167,7 +168,7 @@ int main(void)
   /* USER CODE END WHILE */
 
   /* USER CODE BEGIN 3 */
-      /* Aquire a block of raw input samples */
+      /* Acquire a block of raw input samples */
       getblock(input);
 
       /* Filter the raw input block into each respective output block */
