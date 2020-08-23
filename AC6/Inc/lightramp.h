@@ -40,6 +40,7 @@ extern "C" {
 
 /* Sampling */
 #define DEFAULT_BLOCKSIZE    100	/* Default number of samples per block of streamed ADC/DAC data */
+#define BLOCKSIZE    DEFAULT_BLOCKSIZE
 
 /* Error handling */
 #define ERRORBUFLEN                100    /* Number of errors to record in a circular buffer */

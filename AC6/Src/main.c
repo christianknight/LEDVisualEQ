@@ -71,7 +71,8 @@ float32_t mean_lo,
           mean_lo_mid,
           mean_mid_hi,
           mean_hi,
-          mean_input;
+          mean_input,
+          mean_output;
 
 uint32_t brightness_lo,
          brightness_lo_mid,
@@ -135,7 +136,7 @@ int main(void)
   /* USER CODE BEGIN 2 */
 
   lightramp_init();
-  running_mean_t * running_mean = running_mean_init(RUNNING_MEAN_LEN, DEFAULT_BLOCKSIZE);
+  running_mean_t * running_mean = running_mean_init(RUNNING_MEAN_LEN, BLOCKSIZE);
 
   /* Set initial brightness off all LEDs to none */
   for (uint8_t i = 0; i < NUM_LEDS; i++) {
@@ -167,6 +168,7 @@ int main(void)
       getblock(input);
       bq_do_mean(input, nsamp, &mean_input);
       running_mean_calc(running_mean, input, output);
+      bq_do_mean(output, nsamp, &mean_output);
 
       /* Filter the raw input block into each respective output block */
       bq_do_filter(&bq_filter_lo,     input, output_lo,     nsamp);
