@@ -69,7 +69,8 @@ const float32_t offset = -0.99;
 float32_t mean_lo,
           mean_lo_mid,
           mean_mid_hi,
-          mean_hi;
+          mean_hi,
+          mean_input;
 
 uint32_t brightness_lo,
          brightness_lo_mid,
@@ -161,6 +162,7 @@ int main(void)
     /* USER CODE BEGIN 3 */
       /* Acquire a block of raw input samples */
       getblock(input);
+      bq_do_mean(input, nsamp, &mean_input);
 
       /* Filter the raw input block into each respective output block */
       bq_do_filter(&bq_filter_lo,     input, output_lo,     nsamp);
