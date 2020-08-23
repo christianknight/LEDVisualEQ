@@ -180,12 +180,6 @@ int main(void)
       bq_do_scale(output_mid_hi, scale_mid_hi, output_mid_hi, nsamp);
       bq_do_scale(output_hi,     scale_hi,     output_hi,     nsamp);
 
-      /* Remove DC offset from each filtered block */
-      bq_do_offset(output_lo,     offset, output_lo,     nsamp);
-      bq_do_offset(output_lo_mid, offset, output_lo_mid, nsamp);
-      bq_do_offset(output_mid_hi, offset, output_mid_hi, nsamp);
-      bq_do_offset(output_hi,     offset, output_hi,     nsamp);
-
       /* Calculate mean value of each filtered and transformed output block */
       bq_do_mean(output_lo,     nsamp, &mean_lo);
       bq_do_mean(output_lo_mid, nsamp, &mean_lo_mid);
