@@ -64,8 +64,6 @@ float32_t scale_lo     = 5,
           scale_mid_hi = 8,
           scale_hi     = 10;
 
-const float32_t offset = -0.99;
-
 float32_t mean_lo,
           mean_lo_mid,
           mean_mid_hi,
