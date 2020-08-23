@@ -62,9 +62,9 @@ float32_t *input,
           *output_hi;
 
 /* Scalar multipliers for each sample in a filtered block */
-float32_t scale_lo     = 5,
-          scale_lo_mid = 4,
-          scale_mid_hi = 8,
+float32_t scale_lo     = 15,
+          scale_lo_mid = 14,
+          scale_mid_hi = 18,
           scale_hi     = 10;
 
 float32_t mean_lo,
@@ -195,10 +195,10 @@ int main(void)
       bq_do_mean(output_hi,     nsamp, &mean_hi);
 
       /* Normalize each band's mean value to the input mean to get brightness values */
-      brightness_lo     = (uint32_t)((mean_lo     * scale_lo)     * 0x0000FFFF);
-      brightness_lo_mid = (uint32_t)((mean_lo_mid * scale_lo_mid) * 0x0000FFFF);
-      brightness_mid_hi = (uint32_t)((mean_mid_hi * scale_mid_hi) * 0x0000FFFF);
-      brightness_hi     = (uint32_t)((mean_hi     * scale_hi)     * 0x0000FFFF);
+      brightness_lo     = ((uint32_t)(mean_lo)     * 0x0000FFFF);
+      brightness_lo_mid = ((uint32_t)(mean_lo_mid) * 0x0000FFFF);
+      brightness_mid_hi = ((uint32_t)(mean_mid_hi) * 0x0000FFFF);
+      brightness_hi     = ((uint32_t)(mean_hi)     * 0x0000FFFF);
 
       /* Adjust individual LED dimming based on mean values of each frequency band */
 	  adjust_brightness(LED[0], brightness_lo);
