@@ -24,6 +24,7 @@
 /* USER CODE BEGIN Includes */
 #include "biquad.h"
 #include "lightramp.h"
+#include "running_mean.h"
 
 /* USER CODE END Includes */
 
@@ -38,6 +39,7 @@
 
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
+#define RUNNING_MEAN_LEN    20
 
 /* USER CODE END PM */
 
@@ -53,6 +55,7 @@ TIM_HandleTypeDef htim3;
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
 float32_t *input,
+          *output,
           *output_lo,
           *output_lo_mid,
           *output_mid_hi,
@@ -132,6 +135,7 @@ int main(void)
   /* USER CODE BEGIN 2 */
 
   lightramp_init();
+  running_mean_t * running_mean = running_mean_init(RUNNING_MEAN_LEN, DEFAULT_BLOCKSIZE);
 
   /* Set initial brightness off all LEDs to none */
   for (uint8_t i = 0; i < NUM_LEDS; i++) {
@@ -143,6 +147,7 @@ int main(void)
 
   /* Allocate memory buffers for input block and filtered output blocks */
   input         = (float32_t *)malloc(sizeof(float32_t) * nsamp);
+  output        = (float32_t *)malloc(sizeof(float32_t) * nsamp);
   output_lo     = (float32_t *)malloc(sizeof(float32_t) * nsamp);
   output_lo_mid = (float32_t *)malloc(sizeof(float32_t) * nsamp);
   output_mid_hi = (float32_t *)malloc(sizeof(float32_t) * nsamp);
@@ -161,6 +166,7 @@ int main(void)
       /* Acquire a block of raw input samples */
       getblock(input);
       bq_do_mean(input, nsamp, &mean_input);
+      running_mean_calc(running_mean, input, output);
 
       /* Filter the raw input block into each respective output block */
       bq_do_filter(&bq_filter_lo,     input, output_lo,     nsamp);
