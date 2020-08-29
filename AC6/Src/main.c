@@ -75,6 +75,8 @@ uint32_t brightness_lo,
          brightness_mid_hi,
          brightness_hi;
 
+UART_HandleTypeDef huart3;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -87,7 +89,15 @@ static void MX_DAC_Init(void);
 static void MX_TIM3_Init(void);
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
+#ifdef __GNUC__
+/* With GCC, small printf (option LD Linker->Libraries->Small printf
+   set to 'Yes') calls __io_putchar() */
+#define PUTCHAR_PROTOTYPE int __io_putchar(int ch)
+#else
+#define PUTCHAR_PROTOTYPE int fputc(int ch, FILE *f)
+#endif /* __GNUC__ */
 void adjust_brightness (uint32_t channel, uint32_t val);
+void uart3_init(UART_HandleTypeDef * h);
 
 /* USER CODE END PFP */
 
@@ -131,6 +141,7 @@ int main(void)
   MX_TIM3_Init();
   /* USER CODE BEGIN 2 */
 
+  uart3_init(&huart3);
   lightramp_init();
   running_mean_t * running_mean_lo     = running_mean_init(RUNNING_MEAN_LEN, BLOCKSIZE);
   running_mean_t * running_mean_lo_mid = running_mean_init(RUNNING_MEAN_LEN, BLOCKSIZE);
@@ -517,11 +528,32 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+/* Retarget the C library 'printf' function to the USART */
+PUTCHAR_PROTOTYPE {
+    /* Place implementation of 'fputc' here */
+    HAL_UART_Transmit(&huart3, (uint8_t *)&ch, 1, 0xFFFF);
+
+    return ch;
+}
 
 /* Set compare-capture value to given channel of TIM2 to adjust individual LED PWM dimming level */
 void
 adjust_brightness(uint32_t channel, uint32_t val) {
     __HAL_TIM_SET_COMPARE(H_LED_TIM, channel, val);
+}
+
+void
+uart3_init(UART_HandleTypeDef * h) {
+    h->Instance          = USART3;
+    h->Init.BaudRate     = 9600;
+    h->Init.WordLength   = UART_WORDLENGTH_8B;
+    h->Init.StopBits     = UART_STOPBITS_1;
+    h->Init.Parity       = UART_PARITY_ODD;
+    h->Init.HwFlowCtl    = UART_HWCONTROL_NONE;
+    h->Init.Mode         = UART_MODE_TX_RX;
+    h->Init.OverSampling = UART_OVERSAMPLING_16;
+
+    HAL_UART_Init(h);
 }
 
 /* USER CODE END 4 */
