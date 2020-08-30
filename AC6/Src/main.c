@@ -39,7 +39,7 @@
 
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
-#define RUNNING_MEAN_LEN    20
+#define RUNNING_MEAN_LEN    100
 
 /* USER CODE END PM */
 
@@ -55,29 +55,11 @@ TIM_HandleTypeDef htim3;
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
 float32_t *input,
-          *output,
-          *output_lo,
-          *output_lo_mid,
-          *output_mid_hi,
-          *output_hi;
+		  *running_mean_array;
 
-/* Scalar multipliers for each sample in a filtered block */
-float32_t scale_lo     = 15,
-          scale_lo_mid = 14,
-          scale_mid_hi = 18,
-          scale_hi     = 10;
+float32_t running_mean_actual;
 
-float32_t mean_lo,
-          mean_lo_mid,
-          mean_mid_hi,
-          mean_hi,
-          mean_input,
-          mean_output;
-
-uint32_t brightness_lo,
-         brightness_lo_mid,
-         brightness_mid_hi,
-         brightness_hi;
+uint32_t brightness;
 
 /* USER CODE END PV */
 
@@ -143,16 +125,8 @@ int main(void)
       adjust_brightness(LED[i], 0);
   }
 
-  /* Set up biquad IIR filter structures */
-  bq_filt_init_all();
-
-  /* Allocate memory buffers for input block and filtered output blocks */
-  input         = (float32_t *)malloc(sizeof(float32_t) * nsamp);
-  output        = (float32_t *)malloc(sizeof(float32_t) * nsamp);
-  output_lo     = (float32_t *)malloc(sizeof(float32_t) * nsamp);
-  output_lo_mid = (float32_t *)malloc(sizeof(float32_t) * nsamp);
-  output_mid_hi = (float32_t *)malloc(sizeof(float32_t) * nsamp);
-  output_hi     = (float32_t *)malloc(sizeof(float32_t) * nsamp);
+  input               = (float32_t *)malloc(sizeof(float32_t) * nsamp);
+  running_mean_array  = (float32_t *)malloc(sizeof(float32_t) * nsamp);
 
   /* USER CODE END 2 */
 
@@ -166,45 +140,13 @@ int main(void)
     /* USER CODE BEGIN 3 */
       /* Acquire a block of raw input samples */
       getblock(input);
-      bq_do_mean(input, nsamp, &mean_input);
-      running_mean_calc(running_mean, input, output);
-      bq_do_mean(output, nsamp, &mean_output);
+      bq_do_abs(input, input, nsamp);
+      running_mean_calc(running_mean, input, running_mean_array);
+      bq_do_mean(running_mean_array, nsamp, &running_mean_actual);
 
-      /* Filter the raw input block into each respective output block */
-      bq_do_filter(&bq_filter_lo,     input, output_lo,     nsamp);
-      bq_do_filter(&bq_filter_lo_mid, input, output_lo_mid, nsamp);
-      bq_do_filter(&bq_filter_mid_hi, input, output_mid_hi, nsamp);
-      bq_do_filter(&bq_filter_hi,     input, output_hi,     nsamp);
+      brightness = lightramp_calc_gamma(10.0, running_mean_actual * 0xFFFFFFFF);
 
-      /* Transform each filtered output block into absolute values */
-      bq_do_abs(output_lo,     output_lo,     nsamp);
-      bq_do_abs(output_lo_mid, output_lo_mid, nsamp);
-      bq_do_abs(output_mid_hi, output_mid_hi, nsamp);
-      bq_do_abs(output_hi,     output_hi,     nsamp);
-
-      /* Scale up all samples from each filtered block by given scaling factor */
-      bq_do_scale(output_lo,     scale_lo,     output_lo,     nsamp);
-      bq_do_scale(output_lo_mid, scale_lo_mid, output_lo_mid, nsamp);
-      bq_do_scale(output_mid_hi, scale_mid_hi, output_mid_hi, nsamp);
-      bq_do_scale(output_hi,     scale_hi,     output_hi,     nsamp);
-
-      /* Calculate mean value of each filtered and transformed output block */
-      bq_do_mean(output_lo,     nsamp, &mean_lo);
-      bq_do_mean(output_lo_mid, nsamp, &mean_lo_mid);
-      bq_do_mean(output_mid_hi, nsamp, &mean_mid_hi);
-      bq_do_mean(output_hi,     nsamp, &mean_hi);
-
-      /* Normalize each band's mean value to the input mean to get brightness values */
-      brightness_lo     = ((uint32_t)(mean_lo)     * 0x0000FFFF);
-      brightness_lo_mid = ((uint32_t)(mean_lo_mid) * 0x0000FFFF);
-      brightness_mid_hi = ((uint32_t)(mean_mid_hi) * 0x0000FFFF);
-      brightness_hi     = ((uint32_t)(mean_hi)     * 0x0000FFFF);
-
-      /* Adjust individual LED dimming based on mean values of each frequency band */
-	  adjust_brightness(LED[0], brightness_lo);
-	  adjust_brightness(LED[1], brightness_lo_mid);
-	  adjust_brightness(LED[2], brightness_mid_hi);
-	  adjust_brightness(LED[3], brightness_hi);
+      adjust_brightness(LED[0], brightness);
 
   }
   /* USER CODE END 3 */
