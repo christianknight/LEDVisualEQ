@@ -65,7 +65,7 @@ running_mean_calc(running_mean_t * running_mean, float * in, float * out) {
         out[i] = (running_mean->sum) * (running_mean->one_by_m);    /* Current mean-square value estimate */
 
         /* Increment 'index' into the 'hist' buffer circularly to keep track
-         * of where the oldest sample is. */
+         * of where the oldest sample is. If it has hit 'm', reset it to zero. */
         if (++(running_mean->index) == running_mean->m) {
             running_mean->index = 0;
         }
