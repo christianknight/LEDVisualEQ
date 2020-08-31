@@ -55,11 +55,25 @@ TIM_HandleTypeDef htim3;
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
 float32_t *input,
-		  *running_mean_array;
+          *output_lo,
+          *output_lo_mid,
+          *output_mid_hi,
+          *output_hi;
 
-float32_t running_mean_actual;
+float32_t *running_mean_array_lo,
+		  *running_mean_array_lo_mid,
+		  *running_mean_array_mid_hi,
+		  *running_mean_array_hi;
 
-uint32_t brightness;
+float32_t mean_lo,
+          mean_lo_mid,
+          mean_mid_hi,
+          mean_hi;
+
+uint32_t brightness_lo,
+         brightness_lo_mid,
+         brightness_mid_hi,
+         brightness_hi;
 
 /* USER CODE END PV */
 
@@ -118,15 +132,30 @@ int main(void)
   /* USER CODE BEGIN 2 */
 
   lightramp_init();
-  running_mean_t * running_mean = running_mean_init(RUNNING_MEAN_LEN, BLOCKSIZE);
+  running_mean_t * running_mean_lo     = running_mean_init(RUNNING_MEAN_LEN, BLOCKSIZE);
+  running_mean_t * running_mean_lo_mid = running_mean_init(RUNNING_MEAN_LEN, BLOCKSIZE);
+  running_mean_t * running_mean_mid_hi = running_mean_init(RUNNING_MEAN_LEN, BLOCKSIZE);
+  running_mean_t * running_mean_hi     = running_mean_init(RUNNING_MEAN_LEN, BLOCKSIZE);
 
   /* Set initial brightness off all LEDs to none */
   for (uint8_t i = 0; i < NUM_LEDS; i++) {
       adjust_brightness(LED[i], 0);
   }
 
-  input               = (float32_t *)malloc(sizeof(float32_t) * nsamp);
-  running_mean_array  = (float32_t *)malloc(sizeof(float32_t) * nsamp);
+  /* Set up biquad IIR filter structures */
+  bq_filt_init_all();
+
+  /* Allocate memory buffers for input block and filtered output blocks */
+  input         = (float32_t *)malloc(sizeof(float32_t) * nsamp);
+  output_lo     = (float32_t *)malloc(sizeof(float32_t) * nsamp);
+  output_lo_mid = (float32_t *)malloc(sizeof(float32_t) * nsamp);
+  output_mid_hi = (float32_t *)malloc(sizeof(float32_t) * nsamp);
+  output_hi     = (float32_t *)malloc(sizeof(float32_t) * nsamp);
+
+  running_mean_array_lo     = (float32_t *)malloc(sizeof(float32_t) * nsamp);
+  running_mean_array_lo_mid = (float32_t *)malloc(sizeof(float32_t) * nsamp);
+  running_mean_array_mid_hi = (float32_t *)malloc(sizeof(float32_t) * nsamp);
+  running_mean_array_hi     = (float32_t *)malloc(sizeof(float32_t) * nsamp);
 
   /* USER CODE END 2 */
 
@@ -140,14 +169,42 @@ int main(void)
     /* USER CODE BEGIN 3 */
       /* Acquire a block of raw input samples */
       getblock(input);
-      bq_do_abs(input, input, nsamp);
-      running_mean_calc(running_mean, input, running_mean_array);
-      bq_do_mean(running_mean_array, nsamp, &running_mean_actual);
 
-      brightness = lightramp_calc_gamma(10.0, running_mean_actual * 0xFFFFFFFF);
+      /* Filter the raw input block into each respective output block */
+      bq_do_filter(&bq_filter_lo,     input, output_lo,     nsamp);
+      bq_do_filter(&bq_filter_lo_mid, input, output_lo_mid, nsamp);
+      bq_do_filter(&bq_filter_mid_hi, input, output_mid_hi, nsamp);
+      bq_do_filter(&bq_filter_hi,     input, output_hi,     nsamp);
 
-      adjust_brightness(LED[0], brightness);
+      /* Transform each filtered output block into absolute values */
+      bq_do_abs(output_lo,     output_lo,     nsamp);
+      bq_do_abs(output_lo_mid, output_lo_mid, nsamp);
+      bq_do_abs(output_mid_hi, output_mid_hi, nsamp);
+      bq_do_abs(output_hi,     output_hi,     nsamp);
 
+      /* Do running mean calculation on each filtered block */
+      running_mean_calc(running_mean_lo,     output_lo,     running_mean_array_lo);
+      running_mean_calc(running_mean_lo_mid, output_lo_mid, running_mean_array_lo_mid);
+      running_mean_calc(running_mean_mid_hi, output_mid_hi, running_mean_array_mid_hi);
+      running_mean_calc(running_mean_hi,     output_hi,     running_mean_array_hi);
+
+      /* Calculate mean value of each filtered and transformed output block */
+      bq_do_mean(running_mean_array_lo,     nsamp, &mean_lo);
+      bq_do_mean(running_mean_array_lo_mid, nsamp, &mean_lo_mid);
+      bq_do_mean(running_mean_array_mid_hi, nsamp, &mean_mid_hi);
+      bq_do_mean(running_mean_array_hi,     nsamp, &mean_hi);
+
+      /* Normalize each band's mean value to the input mean to get brightness values */
+      brightness_lo     = lightramp_calc_gamma(7.0, mean_lo     * 0xFFFFFFFF);
+      brightness_lo_mid = lightramp_calc_gamma(7.0, mean_lo_mid * 0xFFFFFFFF);
+      brightness_mid_hi = lightramp_calc_gamma(7.0, mean_mid_hi * 0xFFFFFFFF);
+      brightness_hi     = lightramp_calc_gamma(7.0, mean_hi     * 0xFFFFFFFF);
+
+      /* Adjust individual LED dimming based on mean values of each frequency band */
+	  adjust_brightness(LED[0], brightness_lo);
+	  adjust_brightness(LED[1], brightness_lo_mid);
+	  adjust_brightness(LED[2], brightness_mid_hi);
+	  adjust_brightness(LED[3], brightness_hi);
   }
   /* USER CODE END 3 */
 }
