@@ -80,7 +80,7 @@ extern enum num_channels_in input_configuration;
 extern enum num_channels_out output_configuration;
 extern enum processor_task volatile sampler_status;
 
-extern __IO FlagStatus button_pressed;
+extern __IO uint8_t led_enable;
 
 /* Sampling */
 extern uint32_t nsamp;    /* Number of samples per block */

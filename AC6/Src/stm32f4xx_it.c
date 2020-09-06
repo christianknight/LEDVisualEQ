@@ -220,9 +220,15 @@ void EXTI15_10_IRQHandler(void)
 {
   /* USER CODE BEGIN EXTI15_10_IRQn 0 */
     /* Handle interrupt from user button push */
-    for (uint16_t i = 0; i < 0xFFFF; i++);    /* Brief software delay for button de-bounce */
-    if (HAL_GPIO_ReadPin(PB1_GPIO_Port, PB1_Pin)) {
-        button_pressed = SET;
+	static uint32_t last_tick, current_tick;
+
+    if (HAL_GPIO_ReadPin(PB1_GPIO_Port, PB1_Pin) == GPIO_PIN_SET) {
+    	current_tick = HAL_GetTick();
+    	if (current_tick - last_tick > 100) {
+    		led_enable = !led_enable;
+    	}
+
+        last_tick = current_tick;
     }
 
   /* USER CODE END EXTI15_10_IRQn 0 */

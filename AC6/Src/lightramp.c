@@ -36,7 +36,7 @@ enum num_channels_in input_configuration = MONO_IN;
 enum num_channels_out output_configuration = MONO_OUT;
 enum processor_task volatile sampler_status = STARTUP;
 
-__IO FlagStatus button_pressed = RESET;
+__IO uint8_t led_enable = 1;
 
 /* Sampling */
 uint32_t nsamp = BLOCKSIZE;                          /* Number of samples per block */
@@ -64,12 +64,6 @@ lightramp_init(void) {
     for (int i = 0; i < NUM_LEDS; i++) {
         HAL_TIM_PWM_Start(H_LED_TIM, LED[i]);
     }
-
-    button_pressed = RESET;	            /* Reset button push flag */
-    while (button_pressed == RESET) {
-        __WFI();    /* Wait for user button push */
-    }
-    button_pressed = RESET;	            /* Reset button push flag */
 
     HAL_TIM_OC_Start(H_ADC_TIM, TIM_CHANNEL_1);
 

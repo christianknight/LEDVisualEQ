@@ -167,6 +167,19 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+      /* Check to see if the button was pressed since last processed block; if so, wait until pressed again */
+      if (!led_enable) {
+    	  /* Turn off LEDs */
+          adjust_brightness(LED[0], 0);
+          adjust_brightness(LED[1], 0);
+          adjust_brightness(LED[2], 0);
+          adjust_brightness(LED[3], 0);
+
+          while (!led_enable) {
+              __WFI();    /* Wait for user button push */
+          }
+      }
+
       /* Acquire a block of raw input samples */
       getblock(input);
 
@@ -485,7 +498,7 @@ static void MX_DMA_Init(void)
 
   /* DMA interrupt init */
   /* DMA2_Stream0_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(DMA2_Stream0_IRQn, 0, 0);
+  HAL_NVIC_SetPriority(DMA2_Stream0_IRQn, 1, 0);
   HAL_NVIC_EnableIRQ(DMA2_Stream0_IRQn);
 
 }
@@ -507,7 +520,7 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pin : PB1_Pin */
   GPIO_InitStruct.Pin = PB1_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
-  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(PB1_GPIO_Port, &GPIO_InitStruct);
 
   /* EXTI interrupt init*/
