@@ -75,6 +75,8 @@ uint32_t brightness_lo,
          brightness_mid_hi,
          brightness_hi;
 
+float brightness_global = 0.01f;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -208,10 +210,10 @@ int main(void)
       bq_do_mean(running_mean_array_hi,     nsamp, &mean_hi);
 
       /* Normalize each band's mean value to the input mean to get brightness values */
-      brightness_lo     = lightramp_calc_gamma(5.0, mean_lo     * 0xFFFFFFFF);
-      brightness_lo_mid = lightramp_calc_gamma(5.0, mean_lo_mid * 0xFFFFFFFF);
-      brightness_mid_hi = lightramp_calc_gamma(5.0, mean_mid_hi * 0xFFFFFFFF);
-      brightness_hi     = lightramp_calc_gamma(5.0, mean_hi     * 0xFFFFFFFF);
+      brightness_lo     = lightramp_calc_gamma(5.0, brightness_global, mean_lo     * 0xFFFFFFFF);
+      brightness_lo_mid = lightramp_calc_gamma(5.0, brightness_global, mean_lo_mid * 0xFFFFFFFF);
+      brightness_mid_hi = lightramp_calc_gamma(5.0, brightness_global, mean_mid_hi * 0xFFFFFFFF);
+      brightness_hi     = lightramp_calc_gamma(5.0, brightness_global, mean_hi     * 0xFFFFFFFF);
 
       /* Adjust individual LED dimming based on mean values of each frequency band */
 	  adjust_brightness(LED[0], brightness_lo);

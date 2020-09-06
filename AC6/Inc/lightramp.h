@@ -105,7 +105,7 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef * hadc);
 void HAL_ADC_ConvHalfCpltCallback(ADC_HandleTypeDef * hadc);
 void initerror(void);
 void flagerror(int errorcode);
-uint32_t lightramp_calc_gamma(float gamma, uint32_t val_in);
+uint32_t lightramp_calc_gamma(float gamma, float brightness, uint32_t val_in);
 
 #ifdef __cplusplus
 }

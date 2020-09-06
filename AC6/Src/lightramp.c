@@ -265,8 +265,8 @@ flagerror(int errorcode) {
 }
 
 uint32_t
-lightramp_calc_gamma(float gamma, uint32_t val_in) {
-    uint32_t retval = (uint32_t)(pow((double)val_in/(double)0xFFFFFFFF, gamma) * 0xFFFFFFFF);
+lightramp_calc_gamma(float gamma, float brightness, uint32_t val_in) {
+    uint32_t retval = (uint32_t)(pow((double)val_in/(double)0xFFFFFFFF, gamma) * brightness * 0xFFFFFFFF + 0.5);
 
     return retval;
 }
